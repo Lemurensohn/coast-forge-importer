@@ -15,23 +15,55 @@ function getDirectoryRoot(html, app) {
   return app?.element instanceof HTMLElement ? app.element : null;
 }
 
+/**
+ * Foundry v13 renders the Items tab with ApplicationV2. Depending on when the
+ * module loads and whether the tab has been activated, the directory may have
+ * rendered before "ready". See the hooks at the end of this file.
+ */
+function isItemDirectoryApp(app) {
+  return app === ui?.items
+    || app?.tabName === "items"
+    || app?.id === "items"
+    || app?.documentName === "Item"
+    || app?.constructor?.name === "ItemDirectory";
+}
+
 function addDirectoryButton(app, html) {
   if (!game.user?.isGM) return;
   const root = getDirectoryRoot(html, app);
-  if (!root || !root.matches?.("#items, .item-directory, .directory") && !root.querySelector?.("#items")) {
-    // The directory's own root can have a variety of classes across v13 builds.
-    if (app?.tabName !== "items" && app?.id !== "items") return;
-  }
-  const container = root.querySelector(".directory-header .header-actions")
-    || root.querySelector(".directory-header");
-  if (!container || container.querySelector("[data-coast-forge-open]")) return;
+  if (!root) return;
+
+  // A renderSidebar hook can pass the whole sidebar rather than the Items tab.
+  // Never add the button to another directory by mistake.
+  const tab = root.matches?.('#items, [data-tab="items"].directory, .item-directory')
+    ? root
+    : root.querySelector?.('#items, [data-tab="items"].directory, .item-directory');
+  if (!tab && !isItemDirectoryApp(app)) return;
+  const section = tab || root;
+
+  // Foundry v13 uses .action-buttons; other systems may call it .header-actions.
+  const container = section.querySelector('.directory-header .action-buttons')
+    || section.querySelector('.directory-header .header-actions')
+    || section.querySelector('.directory-header');
+  if (!container || section.querySelector('[data-coast-forge-open]')) return;
+
   const button = document.createElement("button");
   button.type = "button";
   button.className = "coast-forge-open";
   button.setAttribute("data-coast-forge-open", "1");
+  button.title = "Homebrew-Items mit Coast Forge importieren";
   button.innerHTML = '<i class="fa-solid fa-file-import"></i> Coast Forge Import';
-  button.addEventListener("click", event => { event.preventDefault(); void openImporter(); });
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    void openImporter();
+  });
   container.append(button);
+}
+
+function addButtonFromSidebar(app, html) {
+  const root = getDirectoryRoot(html, app);
+  const tab = root?.querySelector?.('#items, [data-tab="items"].directory, .item-directory');
+  if (tab) addDirectoryButton(ui?.items, tab);
 }
 
 async function askSource() {
@@ -176,6 +208,19 @@ export async function openImporter() {
   } catch (error) { notifyError(error); }
 }
 
+// Register render hooks EARLY: by "ready", the initial Items tab can already
+// have been rendered. Later redraws must also restore the button if Foundry
+// replaces the header DOM.
+Hooks.on("renderItemDirectory", addDirectoryButton);
+Hooks.on("renderItemDirectory5e", addDirectoryButton);
+Hooks.on("renderSidebarTab", (app, html) => {
+  if (isItemDirectoryApp(app)) addDirectoryButton(app, html);
+});
+Hooks.on("renderApplicationV2", (app, html) => {
+  if (isItemDirectoryApp(app)) addDirectoryButton(app, html);
+});
+Hooks.on("renderSidebar", addButtonFromSidebar);
+
 Hooks.once("ready", () => {
   if (game.system?.id !== "dnd5e") return;
   const module = game.modules.get(MODULE_ID);
@@ -185,11 +230,9 @@ Hooks.once("ready", () => {
     build: (spec) => buildItemData(spec, () => foundry.utils.randomID())
   });
   if (game.user?.isGM) {
-    Hooks.on("renderItemDirectory", addDirectoryButton);
-    Hooks.on("renderItemDirectory5e", addDirectoryButton);
-    Hooks.on("renderSidebarTab", (app, html) => {
-      if (app?.tabName === "items" || app?.id === "items") addDirectoryButton(app, html);
-    });
+    // Also handle a directory which was already rendered before ready.
+    addDirectoryButton(ui?.items, ui?.items?.element);
+    addButtonFromSidebar(ui?.sidebar, ui?.sidebar?.element);
     console.info(`${TAG} | Bereit. Öffnen per game.modules.get("${MODULE_ID}").api.open()`);
   }
 });

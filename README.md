@@ -1,4 +1,4 @@
-# Coast Forge Importer – Version 0.1.0 (Prototyp)
+# Coast Forge Importer – Version 0.1.1 (Prototyp)
 
 **Ziel:** Foundry VTT **v13** mit **dnd5e 5.x (Referenz 5.2.5)**, D&D 2024-Regeln. Midi-QOL/DAE können installiert bleiben, ihre Automatisierung ist in v0.1 aber **noch nicht implementiert oder getestet**.
 
@@ -9,8 +9,8 @@ GitHub-Repository: https://github.com/Lemurensohn/coast-forge-importer
 Manifest-Link für Forge: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
 
 1. Sicherheitskopie deiner Welt erstellen (idealerweise eine separate Testwelt verwenden).
-2. Die Quelldateien aus dem `coast-forge-importer-github-source-v0.1.0.zip` in das GitHub-Repository hochladen. `module.json` muss im Repository-Hauptverzeichnis liegen; `scripts/`, `styles/` usw. bleiben Unterordner.
-3. Auf GitHub unter **Releases** einen Release mit Tag **`v0.1.0`** erstellen und **zwei Assets** hochladen: `module.json` und `coast-forge-importer-v0.1.0.zip` (Release-Paket; `module.json` liegt in dieser ZIP im Archiv-Stammverzeichnis).
+2. Die Quelldateien aus dem `coast-forge-importer-github-source-v0.1.1.zip` in das GitHub-Repository hochladen. `module.json` muss im Repository-Hauptverzeichnis liegen; `scripts/`, `styles/` usw. bleiben Unterordner.
+3. Auf GitHub unter **Releases** einen Release mit Tag **`v0.1.1`** erstellen und **zwei Assets** hochladen: `module.json` und `coast-forge-importer-v0.1.1.zip` (Release-Paket; `module.json` liegt in dieser ZIP im Archiv-Stammverzeichnis).
 4. Danach auf The Forge unter Bazaar/Custom Module mit dem Manifest-Link installieren und in einer Testwelt unter **Module verwalten** `Coast Forge Importer` aktivieren.
 5. Als GM im **Items-Verzeichnis** den Knopf **Coast Forge Import** verwenden. Sollte er in deiner Foundry-Oberfläche nicht erscheinen, erstelle ein Script-Makro und führe es aus:
 
@@ -20,6 +20,14 @@ Manifest-Link für Forge: https://github.com/Lemurensohn/coast-forge-importer/re
 
 6. Datei `examples/01-erster-import.json` über **Datei auswählen** laden, **Vorschau prüfen**, dann **Importieren**. Standardziel ist der Weltordner `Coast Forge Imports`; optional kann ein berechtigter Actor gewählt werden.
 7. Jedes angelegte Item in Foundry öffnen und die Activities/Effekte durchspielen. Besonders bei Attack/Save/DAE/Midi-QOL ist das nötig.
+
+## Änderungen in 0.1.1
+
+- Registriert den Item-Directory-Button bereits vor dem Foundry-Ready-Hook.
+- Unterstützt das ApplicationV2-Rendern des Item-Verzeichnisses sowie den bereits vorhandenen DOM-Baum beim Start.
+- Sucht in v13 zuerst nach `.directory-header .action-buttons`, mit Fallbacks für andere Oberflächen.
+- Achtet darauf, keine doppelten Buttons einzufügen.
+- **Unverifiziert in einer echten Foundry-Instanz:** Bitte nach F5 testen; das Makro bleibt als Fallback.
 
 ## Das Importformat
 
