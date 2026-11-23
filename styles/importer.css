@@ -1,0 +1,12 @@
+.coast-forge-open { flex: 1 0 auto; white-space: nowrap; font-size: 0.85em; }
+.coast-forge-dialog { min-width: min(440px, 70vw); max-width: 760px; }
+.coast-forge-dialog textarea { width: 100%; min-height: 185px; font: 12px/1.5 monospace; resize: vertical; }
+.coast-forge-dialog .form-group { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.coast-forge-dialog .form-group label { min-width: 100px; font-weight: 600; }
+.coast-forge-dialog .form-group select, .coast-forge-dialog .form-group input { flex: 1 1 auto; min-width: 0; }
+.coast-forge-dialog .hint, .coast-forge-preview .hint { font-size: 0.84em; opacity: 0.78; }
+.coast-forge-preview { max-width: 780px; max-height: 60vh; overflow: auto; }
+.coast-forge-preview table { width: 100%; border-collapse: collapse; }
+.coast-forge-preview td, .coast-forge-preview th { padding: 5px; text-align: left; border-bottom: 1px solid var(--color-border-light-2, #888); }
+.coast-forge-preview details { margin: 10px 0; }
+.coast-forge-error { color: var(--color-level-error, #c23b3b); }

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Quick Instincts (TEST)",
+      "kind": "feature",
+      "automation": "partial",
+      "description": "While this item is owned and the transferable effect is active, gain +1d4 to initiative rolls. Verify compatibility in your test world.",
+      "effects": [
+        {
+          "name": "Initiative +1d4",
+          "transfer": true,
+          "disabled": false,
+          "changes": [
+            { "key": "system.attributes.init.bonus", "mode": 2, "value": "1d4", "priority": 20 }
+          ]
+        }
+      ]
+    }
+  ]
+}

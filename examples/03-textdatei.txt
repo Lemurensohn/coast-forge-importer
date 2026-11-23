@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Break the Chains (TEST)",
+      "kind": "feature",
+      "description": "As an action, you attempt to break an ally's restraints. This example is a simple utility action and does not yet apply a mechanical effect automatically.",
+      "automation": "manual",
+      "activities": [
+        { "type": "utility", "name": "Break the Chains", "activation": { "type": "action", "cost": 1 } }
+      ]
+    }
+  ]
+}
