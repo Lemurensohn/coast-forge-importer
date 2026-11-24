@@ -1,4 +1,4 @@
-# Coast Forge — Verbindlicher Import- und Qualitätsstandard v1.5
+# Coast Forge — Verbindlicher Import- und Qualitätsstandard v2.3
 
 **Zielsystem:** Foundry VTT **v13**, D&D5e **2024-Regeln**, installiertes **dnd5e 5.x** (exakte Minor-Version im Live-Test feststellen), Midi-QOL und ggf. DAE; Hosting: The Forge.
 
@@ -265,3 +265,22 @@ Das QA-Kit lehnt fehlende Feature-Kategorie, fehlende native Unterkategorie, fal
 - Der QA-Code verwendet die native Item-JSON vor dem Import; ein erfolgreicher QA-Durchlauf ist **nicht gleichbedeutend** mit einem bestandenen Foundry-/Midi-QOL-Livetest.
 
 **Regression:** die Testdatei `examples/25-hunters-angle-damage-activity.json` muss nun wegen ihrer 15-stelligen Damage-Activity-ID scheitern; die Korrektur `examples/26-hunters-angle-fighting-style-id-fix.json` muss die neue Prüfung bestehen.
+
+
+## QA v2.3 — Native Scale Value Advancements (Hunter’s Angle)
+
+**Verbindlich:** Wenn der Nutzer ausdrücklich die native `ScaleValue`-Advancement-Tabelle verlangt, niemals ersatzweise arithmetische Formeln wie `floor((@details.level + 1)/6)` ausgeben. Die Level-Werte 1/5/11/17 gehören als `dice`-Skalierung in `system.advancement`, die Damage-Activity referenziert `@scale.<parent-identifier>.<scale-identifier>`. Keine vier duplizierten Activities.
+
+**Wichtige Einschränkung:** Laut offizieller D&D5e-Roll-Formula-Dokumentation sind Standard-`ScaleValue`-Quellen Class, Subclass, Species/Race oder Background. **Ein selbstständiges Feat mit `system.advancement` ist nicht automatisch eine funktionsfähige Scale-Quelle**. Wenn kein Parent-Item mit funktionierender Advancement-Registrierung bekannt ist, darf der Export lediglich als `TEST`/unbestätigt bezeichnet werden, keinesfalls als in Foundry bewiesen funktionierend. Zur robusten Lösung muss die Progression in das zugehörige Class/Subclass-Advancement integriert und der `@scale`-Pfad darauf ausgerichtet werden.
+
+**Erforderliche QA-Checks:**
+
+- `Damage`-Activity besitzt `damage.critical.allow: true`.
+- Exakt eine Bonus-Action- und eine Damage-Activity für Hunter’s Angle.
+- `system.advancement[].type` ist `ScaleValue`, `configuration.type` ist `dice`.
+- `configuration.scale`: Level 1→1d4, 5→2d4, 11→3d4, 17→4d4.
+- Keine Level-Arithmetik in Damage-Formeln, keine vier Stufen-Actions.
+- Quelle des `@scale`-Wertes ist explizit dokumentiert. Ein ungeprüftes Feat-eigenes Scale wird **WARN**, niemals „vollständig funktionsfähig“.
+- Die echte Würfelberechnung und der gewählte Feat Type „Fighting Style“ benötigen weiterhin Foundry-Livebestätigung.
+
+**Testfall:** `27-hunters-angle-advancement-scaling-TEST.json` verwendet die gewünschte Native-Scale-Struktur als expliziten Test. Falls D&D5e auf dem Feat keine Skala bereitstellt, kein `@details.level`-Workaround! Stattdessen Parent-Item-Integration umsetzen.
