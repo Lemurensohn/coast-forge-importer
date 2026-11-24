@@ -3,12 +3,20 @@ const clone = v => JSON.parse(JSON.stringify(v));
 const values = v => Array.isArray(v) ? v : v?.contents ?? (v?.values ? [...v.values()] : Object.values(v ?? {}));
 const validId = v => typeof v === 'string' && /^[A-Za-z0-9]{16}$/.test(v);
 export const PACK_SETTINGS = {effectPack:'Item', journalPack:'JournalEntry', itemPack:'Item'};
+export const packType = pack => pack?.documentName || pack?.documentClass?.documentName || pack?.metadata?.type;
+export function referenceSources(packs, worldJournals, type) {
+  const sources = values(packs).filter(p => packType(p) === type).map(p => ({value:p.collection, label:`Compendium: ${p.title || p.metadata?.label || p.collection} (${p.collection})`}));
+  if (type === 'JournalEntry') for (const doc of values(worldJournals)) {
+    if (doc.id && doc.name) sources.push({value:`journal:${doc.id}`,label:`World Journal: ${doc.name}`});
+  }
+  return sources.sort((a,b)=>a.label.localeCompare(b.label));
+}
 export function createPackResolver(packs) {
   const indices = new Map();
   return async (packId, type, name) => {
     if (typeof name !== 'string' || !name.trim()) throw new Error('Reference name missing.');
     const pack = packs?.get(packId);
-    if (!pack || pack.documentName !== type) throw new Error(`Choose a ${type} compendium for ${name}.`);
+    if (!pack || packType(pack) !== type) throw new Error(`Choose a ${type} compendium for ${name}.`);
     if (!indices.has(packId)) indices.set(packId, Promise.resolve(pack.getIndex()));
     const matches = values(await indices.get(packId)).filter(i => i.name === name);
     if (matches.length !== 1) throw new Error(`${name}: ${matches.length ? 'ambiguous' : 'not found'} in ${packId}.`);
@@ -17,8 +25,36 @@ export function createPackResolver(packs) {
     return doc;
   };
 }
-export async function resolveReferences(input, settings, packs, makeId) {
+// An exact entry or page within the explicitly selected journal source.
+// Never fall back to plain text or silently select an unrelated journal.
+export async function resolveJournal(source, name, packs, worldJournals, cache = new Map()) {
+  if (!source) throw new Error(`${name}: choose Condition Journals (Journal compendium or World Journal).`);
+  let docs;
+  if (source.startsWith('journal:')) {
+    const id=source.slice(8);
+    const doc=values(worldJournals).find(d=>d.id===id);
+    if (!doc) throw new Error(`${name}: selected World Journal no longer exists.`);
+    docs=[doc];
+  } else {
+    const pack=packs?.get(source);
+    if (!pack || packType(pack)!=='JournalEntry') throw new Error(`${name}: choose a JournalEntry compendium.`);
+    // Pages are embedded, not individually indexed. Load only the selected pack,
+    // in small batches and cache it for the duration of the import.
+    if (!cache.has(source)) cache.set(source,(async()=>{
+      const index=values(await pack.getIndex()), result=[];
+      for (let i=0;i<index.length;i+=20) result.push(...await Promise.all(index.slice(i,i+20).map(d=>pack.getDocument(d._id ?? d.id))));
+      return result;
+    })());
+    docs=await cache.get(source);
+    if (docs.some(d=>!d)) throw new Error(`${name}: selected journal pack could not be fully read.`);
+  }
+  const matches=docs.flatMap(d=>d.name===name && d.uuid ? [d] : values(d.pages).filter(p=>p.name===name && p.uuid));
+  if (matches.length!==1) throw new Error(`${name}: ${matches.length?'ambiguous':'not found'} in selected journal source (entry/page).`);
+  return matches[0];
+}
+export async function resolveReferences(input, settings, packs, makeId, worldJournals) {
   const items = clone(input), warnings = [], resolve = createPackResolver(packs);
+  const journalCache = new Map();
   let effects = 0, journals = 0, grants = 0;
   for (const item of items) {
     if (item.effectRefs !== undefined && (!Array.isArray(item.effectRefs) || item.effectRefs.length > 30)) throw new Error(`${item.name}: invalid effectRefs.`);
@@ -71,13 +107,11 @@ export async function resolveReferences(input, settings, packs, makeId) {
     if (typeof item.description === 'string') {
       const matches = [...item.description.matchAll(/\[\[condition:([^\]\n]+)\]\]/g)];
       for (const m of matches) {
-        const name=m[1]; let replacement=name;
-        if (settings.journalPack) {
-          const doc=await resolve(settings.journalPack,'JournalEntry',name);
-          if (/[\[\]{}\n]/.test(doc.uuid+name)) throw new Error('Invalid journal link.');
-          replacement=`@UUID[${doc.uuid}]{${name}}`; journals++;
-          warnings.push(`${item.name}: Journal-Link ${name} aufgelöst; Darstellung live prüfen.`);
-        } else warnings.push(`${item.name}: kein Journal-Compendium gewählt; ${name} bleibt Klartext.`);
+        const name=m[1];
+        const doc=await resolveJournal(settings.journalPack,name,packs,worldJournals,journalCache);
+        if (/[\[\]{}\n]/.test(doc.uuid+name)) throw new Error('Invalid journal link.');
+        const replacement=`@UUID[${doc.uuid}]{${name}}`; journals++;
+        warnings.push(`${item.name}: Journal-Link ${name} aufgelöst; Darstellung live prüfen.`);
         item.description=item.description.replace(m[0],()=>replacement);
       }
     }

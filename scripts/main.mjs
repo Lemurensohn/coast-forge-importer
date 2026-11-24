@@ -1,4 +1,4 @@
-import { PACK_SETTINGS, resolveReferences } from "./references.mjs";
+import { PACK_SETTINGS, resolveReferences, referenceSources } from "./references.mjs";
 import { MODES, matchingItems, updateExisting } from "./updates.mjs";
 import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
@@ -56,8 +56,8 @@ function addButtonFromSidebar(app, html) {
 }
 function packOptions(key, type) {
   const selected = game.settings.get(MODULE_ID,key);
-  const packs = game.packs.contents.filter(p=>p.documentName===type).sort((a,b)=>a.title.localeCompare(b.title));
-  return `<option value="">Nicht ausgewählt</option>` + packs.map(p=>`<option value="${escapeHtml(p.collection)}" ${p.collection===selected?'selected':''}>${escapeHtml(p.title)} (${escapeHtml(p.collection)})</option>`).join('');
+  const sources = referenceSources(game.packs, game.journal, type);
+  return `<option value="">${sources.length ? "Nicht ausgewählt" : "Keine passende Quelle gefunden"}</option>` + sources.map(p=>`<option value="${escapeHtml(p.value)}" ${p.value===selected?'selected':''}>${escapeHtml(p.label)}</option>`).join('');
 }
 async function askSource() {
   const actors = game.actors.contents
@@ -82,7 +82,7 @@ async function askSource() {
         <p class="hint">Vollupdate ersetzt Regeln, Activities, Effects und Advancements; UUID bleibt erhalten. Keine automatische Aktualisierung von Actor-Kopien.</p>
         <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
           <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
-          <div class="form-group"><label>Condition Journals</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
+          <div class="form-group"><label>Condition Journals (Compendium / World Journal)</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
           <div class="form-group"><label>External Grant Items</label><select name="itemPack">${packOptions('itemPack','Item')}</select></div>
         </details><p class="hint">Das Modul führt keine Makros aus. Nur vertrauenswürdige JSON und Compendiums verwenden.</p>
       </div>`,
@@ -296,7 +296,7 @@ export async function openImporter() {
     if (mode === "update" && entry.destination !== "world") throw new Error("Full updates are limited to World Items.");
     const hasReferences = parsed.items.some(i=>i.effectRefs !== undefined || i.compendiumGrants !== undefined || i.description?.includes("[[condition:"));
     if (entry.destination !== "world" && parsed.items.some(i=>i.compendiumGrants?.length)) throw new Error("Compendium grants require World Items.");
-    const resolved = hasReferences ? await resolveReferences(parsed.items,entry.packSelections ?? {},game.packs,()=>foundry.utils.randomID()) : {items:parsed.items,warnings:[]};
+    const resolved = hasReferences ? await resolveReferences(parsed.items,entry.packSelections ?? {},game.packs,()=>foundry.utils.randomID(),game.journal) : {items:parsed.items,warnings:[]};
     const plans = planGrants(resolved.items);
     if (plans.length && entry.destination !== "world") throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(resolved.items);
