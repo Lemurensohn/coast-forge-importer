@@ -209,3 +209,43 @@ Bei einem neuen dnd5e-Systemupdate zuerst die Bestätigungen für Attribute Keys
 ### Regressionsfälle
 
 Das QA-Kit lehnt fehlende Feature-Kategorie, fehlende native Unterkategorie, falsche Feat-/Maneuver-Zuordnung, widersprüchliche Systemfelder und Spells ohne Level/School ab. Die sieben Kategorien sind als Test-Items unter `examples/23-feature-classification-input.json` und `examples/24-feature-classification-ready.json` enthalten.
+
+
+## v1.9 – Kritische Fehlklassifizierung Fighting Style
+
+**In Foundry v13 live beobachtet:** Der zuvor angenommene native Wert `system.type.subtype: "fighting"` hat **Feat Type leer** gelassen. Er ist für diese Installation nachweislich falsch. Die v1.8-QA-Prüfung hat irrtümlich eine nur vermutete Enumeration als korrekt akzeptiert.
+
+**Verbindliche Regel:** Für `kind: "maneuver"` / `classification: "fighting-style-feat"` müssen zwei unabhängige Bedingungen erfüllt sein: `system.type.value: "feat"` und ein **aus der laufenden Foundry-Installation ausgelesener** gültiger `system.type.subtype` für *Fighting Style*. Keine Fantasiewerte. Die Kandidatenliste kann per GM-Script-Makro aus `CONFIG.DND5E.featureTypes.feat.subtypes` ausgelesen werden.
+
+- `"fighting"` wird durch QA v1.9 als **ERROR** verworfen.
+- Fehlender `system.type.subtype` wird als **ERROR** verworfen.
+- Jeder andere derzeit noch nicht live verifizierte Wert ergibt mindestens **WARN**. Vor der nächsten als 'korrekt' bezeichneten Importdatei ist die genaue Foundry-Fassung und der dort ausgelesene Wert zu dokumentieren.
+- Der Importer v0.1.1 verändert dieses Feld nicht: die JSON muss den richtigen nativen Wert selbst enthalten.
+- D&D5e-Dokumentation bestätigt `CONFIG.DND5E.featureTypes` als Konfigurationsquelle: https://github.com/foundryvtt/dnd5e/wiki/Modifying-Your-Game-with-Scripts
+- Die bestehende Hunter's-Angle-Datei mit `"fighting"` ist eine **bekannte fehlerhafte Regression-Datei**, kein Referenzbeispiel für einen gelungenen Import.
+
+
+## QA v2.0 – Fighting Style Candidate und Regression
+
+- Nach dem *Live-Fehler* `system.type.subtype: "fighting"` (Feat Type blieb leer) nutzt der neue Test `system.type.value: "feat"` und `system.type.subtype: "fightingStyle"` für `classification: "fighting-style-feat"`.
+- `fighting`, `fighting-style`, fehlende Subtypes oder Widersprüche werden als **ERROR** abgelehnt. Der automatische Klassifizierungshelfer setzt bei explizitem `fighting-style-feat` den Kandidaten `fightingStyle`.
+- **Status:** `fightingStyle` ist eine aus der typischen dnd5e-5.x-camelCase-Konvention abgeleitete Hypothese, **noch nicht live in deiner Foundry-v13-Welt bestätigt**. Auch bei 0 ERROR bleibt deshalb eine **WARN** bis zur Bestätigung im Dropdown. Erst dann darf die Warnung entfernt werden.
+- Eine QA-Datenprüfung bestätigt die Struktur der JSON. Sie beweist nicht, dass ein Dropdown die Kategorie im Spiel anzeigt. Die Tests dürfen diesen Unterschied nicht verschleiern.
+- Hunter's Angle ist weiterhin ein Legendary Maneuver → Fighting Style Feat, genau **eine Bonus Action**, **ein Effekt**, native `ScaleValue`-Advancement mit 1d4/2d4/3d4/4d4 auf Level 1/5/11/17. Zielbindung, Cover und Einmaligkeit bleiben für diesen Test manuell zu prüfen.
+- Beispiel: `examples/24-hunters-angle-fighting-style-corrected.json`.
+
+
+## v2.1 – Bedingter Post-Hit-Bonusschaden als eigene Damage-Activity (Hunter’s Angle)
+
+**Neue verbindliche Ausnahme zur Regel für Angriffsschaden:** Wenn ausdrücklich eine **manuell nach einem bereits gewürfelten Angriff ausgelöste Schadens-Activity** gewünscht ist, erstellen wir **keinen dauerhaften Damage-Bonus-Active-Effect**. Stattdessen:
+
+1. Eine **Utility-Activity** für die eigentliche Bonus Action, ohne Damage Roll.
+2. Genau **eine Damage-Activity**, die erst nach einem Treffer manuell verwendet wird und **`damage.critical.allow: true`** besitzt. Diese Activity darf keine zusätzliche Action oder Bonus Action kosten.
+3. Die Damage-Activity muss mit dem Charakterlevel skalieren, ohne zusätzliche Stufen-Activities. Für *Hunter's Angle* (Level 1–4: 1d4; 5–10: 2d4; 11–16: 3d4; 17–20: 4d4) ist die native Actor-Rolldata `@details.level` verfügbar. Aktueller Testansatz als Custom Damage Formula: `(1 + floor((@details.level + 1) / 6))d4`.
+4. **Keine automatisch auf jeden Fernkampf-Angriff übertragene `system.bonuses.rwak.damage`-AE**. Ziel, Half Cover, Trefferprüfung und einmalige Nutzung werden im angegebenen Workflow manuell kontrolliert.
+5. Das Original spezifiziert **keinen festen Schadentyp**: Der Zusatzschaden soll den Schadentyp der getroffenen Waffe erhalten. Eine eigenständige Damage-Activity kann diesen Typ in v0.1.1 nicht sicher dynamisch übernehmen; daher im Test keine erfundene feste Damage Type setzen und beim Würfeln gegebenenfalls manuell angleichen.
+6. **Critical Allowed macht den Bonus wählbar kritisch**, erkennt aber einen zuvor ausgeführten Weapon Crit nicht automatisch. In D&D5e 5.x wurden zudem Bugs bei komplexen Custom Damage Formulas und Criticals gemeldet. Das tatsächliche Verdoppeln der Würfel ist zwingend in Foundry v13 mit Midi-QOL live zu prüfen.
+
+**Abgrenzung:** Wenn Nutzer *automatischen* zusätzlichen Attack-Damage bei einem Treffer verlangt, ist die bevorzugte Umsetzung weiterhin ein bedingter Attack-Damage-Part oder ein bestätigter Midi-QOL-Workflow. Die Ausnahme oben gilt nur für den ausdrücklich gewünschten **separaten Post-Hit-Damage-Wurf**. Ein generelles Verbot eigenständiger Damage-Activities für alle on-hit-Boni wäre ebenso falsch wie ihre ungefragte Verwendung.
+
+**QA-Konvention:** `items[].flags.world.coastForgeDamageTiming = "manual-post-hit"`. Dieses Flag ist ausschließlich Entwicklungsmetadatum und automatisiert nichts in Foundry. Der Validator verlangt dann eine Bonus-Action-Aktivierung, eine Damage-Activity mit Critical Allowed, keine persistente Damage-Bonus-AE und eine dynamische Schadensformel. Für die Schadensart/Crithäufigkeit bleibt ein Foundry-Livetest erforderlich.
