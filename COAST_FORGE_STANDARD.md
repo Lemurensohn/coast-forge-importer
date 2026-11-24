@@ -249,3 +249,19 @@ Das QA-Kit lehnt fehlende Feature-Kategorie, fehlende native Unterkategorie, fal
 **Abgrenzung:** Wenn Nutzer *automatischen* zusätzlichen Attack-Damage bei einem Treffer verlangt, ist die bevorzugte Umsetzung weiterhin ein bedingter Attack-Damage-Part oder ein bestätigter Midi-QOL-Workflow. Die Ausnahme oben gilt nur für den ausdrücklich gewünschten **separaten Post-Hit-Damage-Wurf**. Ein generelles Verbot eigenständiger Damage-Activities für alle on-hit-Boni wäre ebenso falsch wie ihre ungefragte Verwendung.
 
 **QA-Konvention:** `items[].flags.world.coastForgeDamageTiming = "manual-post-hit"`. Dieses Flag ist ausschließlich Entwicklungsmetadatum und automatisiert nichts in Foundry. Der Validator verlangt dann eine Bonus-Action-Aktivierung, eine Damage-Activity mit Critical Allowed, keine persistente Damage-Bonus-AE und eine dynamische Schadensformel. Für die Schadensart/Crithäufigkeit bleibt ein Foundry-Livetest erforderlich.
+
+
+## QA v2.2 – Gültige Foundry-v13-Document-IDs und Fighting-Style-Feld
+
+**Livetest-Fehler:** `MidiDamageActivity [HAngleDamage002] validation errors: _id: must be a valid 16-character alphanumeric ID`. Die ursprüngliche ID hatte nur **15 Zeichen**. Der Importer v0.1.1 reicht explizite `_id`-Werte durch; deshalb konnte die Datenschema-Prüfung des D&D5e-Systems scheitern.
+
+**Verbindliche Regeln:**
+
+- Bei neuen Activity- und Effect-Objekten **`_id` bevorzugt weglassen**, sofern kein Verweis diese ID benötigt. Coast Forge v0.1.1 erzeugt automatisch IDs via `foundry.utils.randomID()`. Dies ist bei Hunter's Angle mit zwei unabhängigen Activities der Fall.
+- Eine ausdrücklich übergebene `_id` muss exakt **16 Zeichen [A-Za-z0-9]** lang sein. Mehrfach verwendete IDs innerhalb eines Items sind unzulässig. Der neue QA-Prüfer erzwingt dies vor dem Foundry-Import.
+- `Hunter's Angle` bleibt `kind: "maneuver"`, `classification: "fighting-style-feat"`, mit `system.type.value: "feat"` und dem bisherigen **noch nicht live bestätigten** Kandidaten `system.type.subtype: "fightingStyle"`. Der Name `Fighting Style` darf **nicht** als verifiziert behauptet werden, bevor die Auswahl im tatsächlichen Foundry-v13-Sheet korrekt angezeigt wird. Der belegte Fehler bisher war `fighting`, nicht `fightingStyle`.
+- Die **Bonus-Action-Utility-Activity** und die **separat nach einem Treffer aufgerufene Damage-Activity** bleiben erhalten, ebenso `damage.critical.allow: true`. Keine dauerhafte Damage-AE.
+- Der Würfelbonus bleibt bei Stufen 1–4 `1d4`, 5–10 `2d4`, 11–16 `3d4`, 17–20 `4d4`. Die verwendete Formel ist ein weiterer **Livetestpunkt**, kein durch JavaScript-Tests garantierter Foundry-Wurf.
+- Der QA-Code verwendet die native Item-JSON vor dem Import; ein erfolgreicher QA-Durchlauf ist **nicht gleichbedeutend** mit einem bestandenen Foundry-/Midi-QOL-Livetest.
+
+**Regression:** die Testdatei `examples/25-hunters-angle-damage-activity.json` muss nun wegen ihrer 15-stelligen Damage-Activity-ID scheitern; die Korrektur `examples/26-hunters-angle-fighting-style-id-fix.json` muss die neue Prüfung bestehen.
