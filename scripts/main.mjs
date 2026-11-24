@@ -1,4 +1,5 @@
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
+import { createIconChoices } from "./icons.mjs";
 
 const MODULE_ID = "coast-forge-importer";
 const TAG = "Coast Forge";
@@ -8,18 +9,11 @@ function notifyError(error) {
   console.error(`${TAG} |`, error);
   ui.notifications.error(`${TAG}: ${error.message ?? String(error)}`, { permanent: true });
 }
-
 function getDirectoryRoot(html, app) {
   if (html instanceof HTMLElement) return html;
   if (html?.[0] instanceof HTMLElement) return html[0];
   return app?.element instanceof HTMLElement ? app.element : null;
 }
-
-/**
- * Foundry v13 renders the Items tab with ApplicationV2. Depending on when the
- * module loads and whether the tab has been activated, the directory may have
- * rendered before "ready". See the hooks at the end of this file.
- */
 function isItemDirectoryApp(app) {
   return app === ui?.items
     || app?.tabName === "items"
@@ -27,26 +21,19 @@ function isItemDirectoryApp(app) {
     || app?.documentName === "Item"
     || app?.constructor?.name === "ItemDirectory";
 }
-
 function addDirectoryButton(app, html) {
   if (!game.user?.isGM) return;
   const root = getDirectoryRoot(html, app);
   if (!root) return;
-
-  // A renderSidebar hook can pass the whole sidebar rather than the Items tab.
-  // Never add the button to another directory by mistake.
   const tab = root.matches?.('#items, [data-tab="items"].directory, .item-directory')
     ? root
     : root.querySelector?.('#items, [data-tab="items"].directory, .item-directory');
   if (!tab && !isItemDirectoryApp(app)) return;
   const section = tab || root;
-
-  // Foundry v13 uses .action-buttons; other systems may call it .header-actions.
   const container = section.querySelector('.directory-header .action-buttons')
     || section.querySelector('.directory-header .header-actions')
     || section.querySelector('.directory-header');
   if (!container || section.querySelector('[data-coast-forge-open]')) return;
-
   const button = document.createElement("button");
   button.type = "button";
   button.className = "coast-forge-open";
@@ -59,19 +46,16 @@ function addDirectoryButton(app, html) {
   });
   container.append(button);
 }
-
 function addButtonFromSidebar(app, html) {
   const root = getDirectoryRoot(html, app);
   const tab = root?.querySelector?.('#items, [data-tab="items"].directory, .item-directory');
   if (tab) addDirectoryButton(ui?.items, tab);
 }
-
 async function askSource() {
   const actors = game.actors.contents
     .filter(a => a.isOwner)
     .sort((a, b) => a.name.localeCompare(b.name));
   const options = actors.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join("");
-
   return DialogV2.prompt({
     window: { title: "Coast Forge – Homebrew importieren" },
     content: `
@@ -101,13 +85,11 @@ async function askSource() {
     rejectClose: false
   });
 }
-
 function preflight(items) {
   const results = [];
   for (const item of items) {
     try {
       const data = buildItemData(item, () => foundry.utils.randomID());
-      // Constructor validates the installed dnd5e data model without writing to the world.
       new CONFIG.Item.documentClass(data);
       results.push({ item, data, error: null });
     } catch (error) {
@@ -117,31 +99,108 @@ function preflight(items) {
   return results;
 }
 
+// v0.1.2: a native FilePicker for each preview row. Only img is changed.
 async function confirmPreview(preview, warnings, destination) {
-  const rows = preview.map(({ item, error }) => `<tr>
-    <td>${escapeHtml(item.name)}</td>
-    <td>${escapeHtml(item.type ?? item.kind ?? "")}</td>
-    <td>${item.activities?.length ?? Object.keys(item.system?.activities ?? {}).length}</td>
-    <td>${item.effects?.length ?? 0}</td>
-    <td>${error ? `<span class="coast-forge-error">${escapeHtml(error)}</span>` : "✓"}</td>
-    </tr>`).join("");
+  const icons = createIconChoices(preview);
+  let picker = null;
+  let generation = 0;
+  let active = true;
+  const rows = preview.map(({ item, data, error }, index) => {
+    const path = icons.get(index);
+    const iconCell = error || !data ? "—" : `<div class="coast-forge-icon-controls">
+      <img class="coast-forge-item-icon" src="${escapeHtml(path)}" alt="" title="${escapeHtml(path)}">
+      <div class="coast-forge-icon-buttons">
+        <button type="button" class="coast-forge-pick-icon" title="Icon auswählen: ${escapeHtml(item.name)}"><i class="fa-solid fa-image"></i> Bild wählen</button>
+        <button type="button" class="coast-forge-reset-icon" title="Ursprüngliches Icon wiederherstellen" disabled><i class="fa-solid fa-rotate-left"></i> Reset</button>
+      </div></div>`;
+    return `<tr data-coast-forge-row="${index}">
+      <td>${iconCell}</td>
+      <td>${escapeHtml(item.name)}</td>
+      <td>${escapeHtml(item.type ?? item.kind ?? "")}</td>
+      <td>${item.activities?.length ?? Object.keys(item.system?.activities ?? {}).length}</td>
+      <td>${item.effects?.length ?? 0}</td>
+      <td>${error ? `<span class="coast-forge-error">${escapeHtml(error)}</span>` : "✓"}</td>
+      </tr>`;
+  }).join("");
   const warningList = warnings.length
     ? `<details><summary>${warnings.length} Hinweis(e)</summary><ul>${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join("")}</ul></details>`
     : "<p>Keine Formatwarnungen.</p>";
   const targetName = destination === "world" ? "Coast Forge Imports (Welt)" : game.actors.get(destination)?.name ?? "Unbekannt";
   const count = preview.filter(r => !r.error).length;
-  return DialogV2.confirm({
-    window: { title: "Coast Forge – Importvorschau" },
-    content: `<div class="coast-forge-preview">
-      <p><strong>${count} von ${preview.length} Items vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
-      <table><thead><tr><th>Name</th><th>Typ</th><th>Activities</th><th>Effekte</th><th>Prüfung</th></tr></thead><tbody>${rows}</tbody></table>
-      ${warningList}<p class="hint">Die Vorschau ist eine lokale Datenmodellprüfung; sie garantiert noch keine funktionierende Midi-QOL-Automation.</p>
-    </div>`,
-    yes: { label: "Importieren" }, no: { label: "Abbrechen" },
-    rejectClose: false
-  });
+  let approved;
+  try {
+    approved = await DialogV2.confirm({
+      window: { title: "Coast Forge – Importvorschau" },
+      position: { width: 760 },
+      modal: false,
+      content: `<div class="coast-forge-preview">
+        <p><strong>${count} von ${preview.length} Items vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
+        <p class="hint">Optional: Wähle für jedes Item ein eigenes Bild aus der Foundry-Dateiauswahl. Ohne Auswahl bleibt das bisherige Icon erhalten.</p>
+        <table><thead><tr><th>Icon</th><th>Name</th><th>Typ</th><th>Activities</th><th>Effekte</th><th>Prüfung</th></tr></thead><tbody>${rows}</tbody></table>
+        ${warningList}<p class="hint">Die Vorschau ist eine lokale Datenmodellprüfung; sie garantiert noch keine funktionierende Midi-QOL-Automation.</p>
+      </div>`,
+      render: (_event, dialog) => {
+        for (const row of dialog.element.querySelectorAll("[data-coast-forge-row]")) {
+          const index = Number(row.dataset.coastForgeRow);
+          const choose = row.querySelector(".coast-forge-pick-icon");
+          const reset = row.querySelector(".coast-forge-reset-icon");
+          const image = row.querySelector(".coast-forge-item-icon");
+          if (!choose || !reset || !image) continue;
+          const refresh = () => {
+            const path = icons.get(index);
+            image.src = path;
+            image.title = path;
+            reset.disabled = !icons.changed(index);
+          };
+          refresh();
+          // Assign handlers rather than accumulating listeners on dialog re-render.
+          choose.onclick = async event => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!active) return;
+            const request = ++generation;
+            try {
+              if (picker?.rendered) await picker.close();
+              if (!active || request !== generation) return;
+              const NativePicker = foundry.applications.apps.FilePicker;
+              const Picker = NativePicker.implementation ?? NativePicker;
+              const opened = new Picker({
+                type: "image",
+                current: icons.get(index),
+                callback: path => {
+                  if (!active || request !== generation || !icons.select(index, path)) return;
+                  refresh();
+                }
+              });
+              picker = opened;
+              await opened.browse();
+              if (!active || request !== generation) {
+                if (opened.rendered) await opened.close();
+                return;
+              }
+              if (!opened.rendered) await opened.render({ force: true });
+            } catch (error) { notifyError(error); }
+          };
+          reset.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (active && icons.reset(index)) refresh();
+          };
+        }
+      },
+      yes: { label: "Importieren" }, no: { label: "Abbrechen" },
+      rejectClose: false
+    });
+    if (approved) icons.commit();
+    return approved;
+  } finally {
+    active = false;
+    if (picker?.rendered) {
+      try { await picker.close(); }
+      catch (error) { console.warn(`${TAG} | FilePicker konnte nicht geschlossen werden.`, error); }
+    }
+  }
 }
-
 async function resolveTarget(destination) {
   if (destination !== "world") {
     const actor = game.actors.get(destination);
@@ -152,7 +211,6 @@ async function resolveTarget(destination) {
   if (!folder) folder = await Folder.create({ name: "Coast Forge Imports", type: "Item" });
   return { actor: null, folder };
 }
-
 async function performImport(preview, destination) {
   const { actor, folder } = await resolveTarget(destination);
   const successes = [], skipped = [], failures = [];
@@ -185,7 +243,6 @@ async function performImport(preview, destination) {
   else ui.notifications.info(`${TAG}: ${resultText}`);
   return { successes, skipped, failures };
 }
-
 export async function openImporter() {
   if (!game.user?.isGM) { ui.notifications.warn("Coast Forge: Nur Spielleitungen dürfen importieren."); return; }
   if (game.system?.id !== "dnd5e") { ui.notifications.error("Coast Forge: Benötigt das dnd5e-System."); return; }
@@ -207,10 +264,6 @@ export async function openImporter() {
     return await performImport(preview, entry.destination);
   } catch (error) { notifyError(error); }
 }
-
-// Register render hooks EARLY: by "ready", the initial Items tab can already
-// have been rendered. Later redraws must also restore the button if Foundry
-// replaces the header DOM.
 Hooks.on("renderItemDirectory", addDirectoryButton);
 Hooks.on("renderItemDirectory5e", addDirectoryButton);
 Hooks.on("renderSidebarTab", (app, html) => {
@@ -220,7 +273,6 @@ Hooks.on("renderApplicationV2", (app, html) => {
   if (isItemDirectoryApp(app)) addDirectoryButton(app, html);
 });
 Hooks.on("renderSidebar", addButtonFromSidebar);
-
 Hooks.once("ready", () => {
   if (game.system?.id !== "dnd5e") return;
   const module = game.modules.get(MODULE_ID);
@@ -230,7 +282,6 @@ Hooks.once("ready", () => {
     build: (spec) => buildItemData(spec, () => foundry.utils.randomID())
   });
   if (game.user?.isGM) {
-    // Also handle a directory which was already rendered before ready.
     addDirectoryButton(ui?.items, ui?.items?.element);
     addButtonFromSidebar(ui?.sidebar, ui?.sidebar?.element);
     console.info(`${TAG} | Bereit. Öffnen per game.modules.get("${MODULE_ID}").api.open()`);

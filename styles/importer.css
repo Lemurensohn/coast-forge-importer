@@ -10,3 +10,9 @@
 .coast-forge-preview td, .coast-forge-preview th { padding: 5px; text-align: left; border-bottom: 1px solid var(--color-border-light-2, #888); }
 .coast-forge-preview details { margin: 10px 0; }
 .coast-forge-error { color: var(--color-level-error, #c23b3b); }
+/* v0.1.2: per-item icon picker in the existing preview. */
+.coast-forge-icon-controls { display: flex; align-items: center; gap: 8px; min-width: 170px; }
+.coast-forge-item-icon { flex: 0 0 48px; width: 48px; height: 48px; object-fit: contain; border: 1px solid var(--color-border-light-2, #888); border-radius: 4px; }
+.coast-forge-icon-buttons { display: flex; flex-direction: column; gap: 3px; align-items: stretch; }
+.coast-forge-icon-buttons button { min-height: 23px; height: auto; padding: 2px 6px; font-size: 0.82em; white-space: nowrap; line-height: 1.2; }
+.coast-forge-reset-icon:disabled { opacity: 0.5; }

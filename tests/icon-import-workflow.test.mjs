@@ -1,0 +1,81 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const fixture = readFileSync(new URL('../examples/29-legendary-cantrips-TEST.json', import.meta.url), 'utf8');
+let state;
+const event = {preventDefault(){},stopPropagation(){}};
+class Picker {
+  constructor(options){ this.options=options;this.rendered=false;state.pickers.push(this); }
+  async browse(){ this.rendered=true; return this; }
+  async render(){this.rendered=true;return this;}
+  async close(){this.rendered=false;}
+}
+const makeRows=()=>Array.from({length:4},(_,index)=>{
+  const elements={'.coast-forge-pick-icon':{},'.coast-forge-reset-icon':{},'.coast-forge-item-icon':{}};
+  return {dataset:{coastForgeRow:String(index)},querySelector:s=>elements[s],elements};
+});
+globalThis.foundry={applications:{api:{DialogV2:{
+  async prompt(opts){ return opts.ok.label==='Vorschau prüfen'?{text:fixture,destination:state.destination}:true; },
+  async confirm(opts){
+    assert.match(opts.content,/Cinder Snap/);
+    assert.match(opts.content,/Grave Pinch/);
+    assert.equal((opts.content.match(/class="coast-forge-pick-icon"/g)||[]).length,4);
+    const rows=makeRows();
+    opts.render({}, {element:{querySelectorAll:()=>rows}});
+    await state.interact(rows);
+    return state.approved;
+  }
+}},apps:{FilePicker:{implementation:Picker}}},utils:{randomID:(()=>{let i=0;return ()=>String(++i).padStart(16,'0');})()}};
+globalThis.Hooks={on(){},once(){}};
+globalThis.ui={notifications:{error(x){throw new Error(x);},warn(){},info(){}}};
+globalThis.CONFIG={Item:{documentClass:class{constructor(data){assert.ok(data.name);}}}};
+const actor={id:'actor1',name:'Test Actor',isOwner:true,items:{contents:[]},async createEmbeddedDocuments(type,docs){assert.equal(type,'Item');state.created.push(...structuredClone(docs));}};
+globalThis.game={user:{isGM:true},system:{id:'dnd5e',version:'5.2.5'},actors:{contents:[actor],get:()=>actor},folders:[{id:'folder1',type:'Item',name:'Coast Forge Imports',folder:null}],items:{contents:[]}};
+globalThis.Item={implementation:{async createDocuments(docs){state.created.push(...structuredClone(docs));}}};
+const {openImporter}=await import('../scripts/main.mjs');
+const choose=async (row,path)=>{
+  await row.elements['.coast-forge-pick-icon'].onclick(event);
+  const picker=state.pickers.at(-1);
+  assert.equal(picker.options.type,'image');
+  picker.options.callback(path);
+  assert.equal(row.elements['.coast-forge-item-icon'].src,path);
+};
+function setup(interact,approved=true,destination='world'){
+  state={interact,approved,destination,pickers:[],created:[]};
+  game.items.contents=[];actor.items.contents=[];
+}
+test('world import uses four different selected icons',async()=>{
+  const paths=['one.png','two.webp','three.jpg','four.png'];
+  setup(async rows=>{for(let i=0;i<rows.length;i++) await choose(rows[i],paths[i]);});
+  const result=await openImporter();
+  assert.equal(result.successes.length,4);
+  assert.deepEqual(state.created.map(x=>x.img),paths);
+  assert.ok(state.created.every(x=>x.folder==='folder1'));
+  assert.ok(state.pickers.every(p=>!p.rendered));
+});
+test('actor import supports independent choices and reset',async()=>{
+  setup(async rows=>{
+    const original=rows[1].elements['.coast-forge-item-icon'].src;
+    await choose(rows[0],'first.png');await choose(rows[1],'second.png');
+    rows[1].elements['.coast-forge-reset-icon'].onclick(event);
+    assert.equal(rows[1].elements['.coast-forge-item-icon'].src,original);
+  },true,'actor1');
+  const result=await openImporter();
+  assert.equal(result.successes.length,4);
+  assert.equal(state.created[0].img,'first.png');
+  assert.notEqual(state.created[1].img,'second.png');
+  assert.ok(state.created.every(x=>!x.folder));
+});
+test('cancelling preview prevents any item creation',async()=>{
+  setup(async rows=>choose(rows[0],'cancelled.png'),false);
+  assert.equal(await openImporter(),undefined);
+  assert.equal(state.created.length,0);
+});
+test('existing items remain skipped, not overwritten by chosen image',async()=>{
+  setup(async rows=>choose(rows[0],'new.png'));
+  game.items.contents=[{name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'old.png'}];
+  const result=await openImporter();
+  assert.deepEqual(result.skipped,['Cinder Snap']);
+  assert.equal(state.created.length,3);
+  assert.equal(game.items.contents[0].img,'old.png');
+});

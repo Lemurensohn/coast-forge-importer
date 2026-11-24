@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Cinder Snap",
+      "kind": "spell",
+      "automation": "partial",
+      "description": "Legendary Cantrip\n\nChoose one creature within 30 feet. The target must make a Dexterity saving throw. On a failed save, it takes 1d4 Fire damage and can’t benefit from being lightly obscured until the end of your turn. On a successful save, it takes no damage.\n\nA Legendary Cantrip is a minor supernatural technique that can be used as a Bonus Action. You can cast only one Legendary Cantrip per turn, and you can’t cast a Legendary Cantrip on a turn in which you cast another cantrip. You use your spellcasting ability for its attack roll or saving throw DC.\n\nCantrip Upgrade. The damage increases to 2d4 at level 5, 3d4 at level 11, and 4d4 at level 17.",
+      "system": {
+        "level": 0,
+        "school": "evo",
+        "activation": {
+          "type": "bonus",
+          "cost": 1
+        },
+        "range": {
+          "value": "30",
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature"
+          }
+        },
+        "duration": {
+          "units": "inst"
+        }
+      },
+      "activities": [
+        {
+          "type": "save",
+          "name": "Cinder Snap",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "30",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "count": "1",
+              "type": "creature"
+            },
+            "override": true
+          },
+          "damage": {
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 4,
+                "bonus": "",
+                "types": [
+                  "fire"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                },
+                "scaling": {
+                  "mode": "whole",
+                  "number": 1,
+                  "formula": ""
+                }
+              }
+            ],
+            "onSave": "none"
+          },
+          "save": {
+            "ability": [
+              "dex"
+            ],
+            "dc": {
+              "calculation": "spellcasting",
+              "formula": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grave Pinch",
+      "kind": "spell",
+      "automation": "partial",
+      "description": "Legendary Cantrip\n\nChoose one creature within 30 feet. The target must make a Constitution saving throw. On a failed save, it takes 1d4 Necrotic damage, and the next time it regains Hit Points before the start of your next turn, the healing is reduced by twice your Proficiency Bonus. On a successful save, it takes no damage.\n\nA Legendary Cantrip is a minor supernatural technique that can be used as a Bonus Action. You can cast only one Legendary Cantrip per turn, and you can’t cast a Legendary Cantrip on a turn in which you cast another cantrip. You use your spellcasting ability for its attack roll or saving throw DC.\n\nCantrip Upgrade. The damage increases to 2d4 at level 5, 3d4 at level 11, and 4d4 at level 17.",
+      "system": {
+        "level": 0,
+        "school": "nec",
+        "activation": {
+          "type": "bonus",
+          "cost": 1
+        },
+        "range": {
+          "value": "30",
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature"
+          }
+        },
+        "duration": {
+          "units": "inst"
+        }
+      },
+      "activities": [
+        {
+          "type": "save",
+          "name": "Grave Pinch",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "30",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "count": "1",
+              "type": "creature"
+            },
+            "override": true
+          },
+          "damage": {
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 4,
+                "bonus": "",
+                "types": [
+                  "necrotic"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                },
+                "scaling": {
+                  "mode": "whole",
+                  "number": 1,
+                  "formula": ""
+                }
+              }
+            ],
+            "onSave": "none"
+          },
+          "save": {
+            "ability": [
+              "con"
+            ],
+            "dc": {
+              "calculation": "spellcasting",
+              "formula": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Thunder Tap",
+      "kind": "spell",
+      "automation": "partial",
+      "description": "Legendary Cantrip\n\nChoose one creature within 30 feet. The target must make a Constitution saving throw. On a failed save, it takes 1d4 Thunder damage, and if it is Large or smaller, it is pushed 5 feet away from you. On a successful save, it takes no damage.\n\nA Legendary Cantrip is a minor supernatural technique that can be used as a Bonus Action. You can cast only one Legendary Cantrip per turn, and you can’t cast a Legendary Cantrip on a turn in which you cast another cantrip. You use your spellcasting ability for its attack roll or saving throw DC.\n\nCantrip Upgrade. The damage increases to 2d4 at level 5, 3d4 at level 11, and 4d4 at level 17.",
+      "system": {
+        "level": 0,
+        "school": "evo",
+        "activation": {
+          "type": "bonus",
+          "cost": 1
+        },
+        "range": {
+          "value": "30",
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature"
+          }
+        },
+        "duration": {
+          "units": "inst"
+        }
+      },
+      "activities": [
+        {
+          "type": "save",
+          "name": "Thunder Tap",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "30",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "count": "1",
+              "type": "creature"
+            },
+            "override": true
+          },
+          "damage": {
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 4,
+                "bonus": "",
+                "types": [
+                  "thunder"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                },
+                "scaling": {
+                  "mode": "whole",
+                  "number": 1,
+                  "formula": ""
+                }
+              }
+            ],
+            "onSave": "none"
+          },
+          "save": {
+            "ability": [
+              "con"
+            ],
+            "dc": {
+              "calculation": "spellcasting",
+              "formula": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Frost Hook",
+      "kind": "spell",
+      "automation": "partial",
+      "description": "Legendary Cantrip\n\nChoose one creature within 45 feet. Make a ranged spell attack against the target. On a hit, it takes 1d4 Cold damage, and its Speed is reduced by 5 feet until the start of your next turn.\n\nA Legendary Cantrip is a minor supernatural technique that can be used as a Bonus Action. You can cast only one Legendary Cantrip per turn, and you can’t cast a Legendary Cantrip on a turn in which you cast another cantrip. You use your spellcasting ability for its attack roll or saving throw DC.\n\nCantrip Upgrade. The damage increases to 2d4 at level 5, 3d4 at level 11, and 4d4 at level 17.",
+      "system": {
+        "level": 0,
+        "school": "evo",
+        "activation": {
+          "type": "bonus",
+          "cost": 1
+        },
+        "range": {
+          "value": "45",
+          "units": "ft"
+        },
+        "target": {
+          "affects": {
+            "count": "1",
+            "type": "creature"
+          }
+        },
+        "duration": {
+          "units": "inst"
+        }
+      },
+      "activities": [
+        {
+          "type": "attack",
+          "name": "Frost Hook",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "45",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "count": "1",
+              "type": "creature"
+            },
+            "override": true
+          },
+          "damage": {
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 4,
+                "bonus": "",
+                "types": [
+                  "cold"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                },
+                "scaling": {
+                  "mode": "whole",
+                  "number": 1,
+                  "formula": ""
+                }
+              }
+            ],
+            "includeBase": false
+          },
+          "attack": {
+            "ability": "",
+            "type": {
+              "value": "ranged",
+              "classification": "spell"
+            },
+            "bonus": "",
+            "flat": false
+          }
+        }
+      ]
+    }
+  ]
+}

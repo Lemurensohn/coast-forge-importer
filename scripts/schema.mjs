@@ -6,7 +6,6 @@ export const SCHEMA_VERSION = 1;
 export const ALLOWED_TYPES = new Set([
   "feat", "spell", "weapon", "equipment", "consumable", "tool", "loot", "container", "class", "subclass"
 ]);
-
 const KIND_TO_TYPE = Object.freeze({
   feature: "feat", feat: "feat", maneuver: "feat", manoeuvre: "feat", invocation: "feat",
   spell: "spell", cantrip: "spell", weapon: "weapon", armor: "equipment",
@@ -14,7 +13,6 @@ const KIND_TO_TYPE = Object.freeze({
   potion: "consumable", tool: "tool", loot: "loot", item: "loot", container: "container",
   class: "class", subclass: "subclass"
 });
-
 const DEFAULT_IMAGES = Object.freeze({
   feat: "icons/svg/book.svg", spell: "icons/svg/aura.svg", weapon: "icons/svg/sword.svg",
   equipment: "icons/svg/shield.svg", consumable: "icons/svg/potion.svg",
@@ -25,37 +23,29 @@ const DEFAULT_IMAGES = Object.freeze({
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
-
 function escapeHtml(value) {
   return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
-
 export { escapeHtml };
-
 function renderDescription(value) {
   if (!value) return "";
-  // Plain text only in v0.1: user-provided HTML/JS is NOT executed.
   const safe = escapeHtml(value).replace(/\r\n?/g, "\n");
   return safe.split(/\n\s*\n/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("\n");
 }
-
 export function getItemType(spec) {
   const requested = String(spec.type ?? spec.kind ?? "").trim().toLowerCase();
   return KIND_TO_TYPE[requested] ?? requested;
 }
-
 export function parseImport(text) {
   if (typeof text !== "string" || !text.trim()) throw new Error("Die Importdatei ist leer.");
   if (text.length > 1_000_000) throw new Error("Die Importdatei ist zu groß (maximal 1 MB Text).");
   let input;
   try { input = JSON.parse(text.replace(/^\uFEFF/, "")); }
   catch (error) { throw new Error(`Ungültiges JSON: ${error.message}`); }
-
   if (!isObject(input)) throw new Error("Die Datei muss ein JSON-Objekt sein.");
   if (input.schemaVersion !== SCHEMA_VERSION) {
     throw new Error(`Unbekannte schemaVersion ${String(input.schemaVersion)}. Erwartet: ${SCHEMA_VERSION}.`);
@@ -64,7 +54,6 @@ export function parseImport(text) {
     throw new Error("'items' muss eine nichtleere Liste sein.");
   }
   if (input.items.length > 100) throw new Error("Maximal 100 Items pro Import.");
-
   const warnings = [];
   const signatures = new Set();
   input.items.forEach((item, index) => {
@@ -117,14 +106,9 @@ export function parseImport(text) {
       warnings.push(`${item.name}: Klassen-/Subclass-Advancement wird noch nicht automatisch aufgebaut.`);
     }
   });
-
   return { schemaVersion: SCHEMA_VERSION, items: input.items, warnings };
 }
-
-/**
- * Converts an approachable damage shorthand to the v5.2.5 DamageField structure.
- * Already-native fields pass through untouched.
- */
+/** Converts an approachable damage shorthand to the v5.2.5 DamageField structure. */
 export function normalizeDamagePart(part) {
   if (!isObject(part)) throw new Error("Damage-Part muss ein Objekt sein.");
   if (!Object.hasOwn(part, "formula")) return clone(part);
@@ -137,7 +121,6 @@ export function normalizeDamagePart(part) {
     scaling: { mode: "", number: null, formula: "" }
   };
 }
-
 export function normalizeActivity(activity, makeId) {
   const result = clone(activity);
   const id = result._id || makeId();
@@ -152,21 +135,17 @@ export function normalizeActivity(activity, makeId) {
   }
   return result;
 }
-
 export function buildItemData(spec, makeId) {
   const id = makeId ?? (() => Math.random().toString(36).slice(2, 18).padEnd(16, "0"));
   const type = getItemType(spec);
   if (!ALLOWED_TYPES.has(type)) throw new Error(`Unbekannter Item-Typ: ${type}`);
   const system = clone(spec.system ?? {});
-
   if (spec.description !== undefined) {
     system.description ??= {};
     system.description.value = renderDescription(spec.description);
   }
-  // Modern 2024 rules, leaving user-provided source fields intact.
   system.source ??= {};
   system.source.rules ??= "2024";
-
   if (Array.isArray(spec.activities)) {
     const activities = {};
     for (const a of spec.activities) {
@@ -176,7 +155,6 @@ export function buildItemData(spec, makeId) {
     }
     system.activities = activities;
   }
-
   const effects = (spec.effects ?? []).map(effect => ({
     ...clone(effect), _id: effect._id ?? id(),
     name: effect.name || `${spec.name} Effect`,
@@ -189,7 +167,6 @@ export function buildItemData(spec, makeId) {
     originalKind: String(spec.kind ?? type),
     automation: String(spec.automation ?? "unknown")
   };
-
   return {
     name: spec.name.trim(), type,
     img: spec.img || DEFAULT_IMAGES[type] || "icons/svg/item-bag.svg",

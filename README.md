@@ -1,59 +1,46 @@
-# Coast Forge Importer – Version 0.1.1 (Prototyp)
+# Coast Forge Importer – v0.1.2
 
-**Ziel:** Foundry VTT **v13** mit **dnd5e 5.x (Referenz 5.2.5)**, D&D 2024-Regeln. Midi-QOL/DAE können installiert bleiben, ihre Automatisierung ist in v0.1 aber **noch nicht implementiert oder getestet**.
+Foundry VTT v13 / dnd5e 5.x (Referenz 5.2.5), D&D 2024. Midi-QOL und DAE können installiert bleiben. Die Automatisierung einzelner importierter Mechaniken ist jeweils in Foundry zu prüfen.
 
-## Installation (The Forge / GitHub)
+## Neu in v0.1.2 – individuelle Item-Icons
 
-GitHub-Repository: https://github.com/Lemurensohn/coast-forge-importer
+- In der Importvorschau hat jedes gültige Item einen eigenen Button **Bild wählen** mit 48 × 48 px Vorschau.
+- Der native Foundry-v13-FilePicker (`foundry.applications.apps.FilePicker.implementation`) öffnet sich für Bilddateien. Die konfigurierte Implementierung wird verwendet, damit Hosting-spezifische Anpassungen möglich bleiben.
+- Der gewählte Asset-Pfad wird unverändert in `img` des zugehörigen Items übernommen, aber erst nach Bestätigung der Importvorschau. Reset stellt das ursprünglich aus der JSON bzw. dem Standardbild stammende Icon wieder her.
+- Ohne Auswahl bleibt das bisherige Icon erhalten. Abbrechen erstellt keine Items; ein bereits durch den FilePicker hochgeladenes Asset kann unabhängig davon in der Asset Library verbleiben.
+- Funktioniert im bestehenden Importpfad für Welt-Items und Actors. Duplikate werden weiterhin übersprungen, nicht nachträglich aktualisiert.
+- Die bisherige JSON-Schema-Version 1 und die Activity-/Active-Effect-Verarbeitung bleiben unverändert. Die Bilder selbst müssen nicht in die JSON eingebettet werden.
+- Keine neuen automatisierten ItemGrant-Verknüpfungen, keine neue Effekt-Automation in diesem Release.
 
-Manifest-Link für Forge: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
+## Installation und Update (The Forge / GitHub)
 
-1. Sicherheitskopie deiner Welt erstellen (idealerweise eine separate Testwelt verwenden).
-2. Die Quelldateien aus dem `coast-forge-importer-github-source-v0.1.1.zip` in das GitHub-Repository hochladen. `module.json` muss im Repository-Hauptverzeichnis liegen; `scripts/`, `styles/` usw. bleiben Unterordner.
-3. Auf GitHub unter **Releases** einen Release mit Tag **`v0.1.1`** erstellen und **zwei Assets** hochladen: `module.json` und `coast-forge-importer-v0.1.1.zip` (Release-Paket; `module.json` liegt in dieser ZIP im Archiv-Stammverzeichnis).
-4. Danach auf The Forge unter Bazaar/Custom Module mit dem Manifest-Link installieren und in einer Testwelt unter **Module verwalten** `Coast Forge Importer` aktivieren.
-5. Als GM im **Items-Verzeichnis** den Knopf **Coast Forge Import** verwenden. Sollte er in deiner Foundry-Oberfläche nicht erscheinen, erstelle ein Script-Makro und führe es aus:
+Repository: https://github.com/Lemurensohn/coast-forge-importer
 
-   ```js
-   game.modules.get("coast-forge-importer").api.open();
-   ```
+Manifest: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
 
-6. Datei `examples/01-erster-import.json` über **Datei auswählen** laden, **Vorschau prüfen**, dann **Importieren**. Standardziel ist der Weltordner `Coast Forge Imports`; optional kann ein berechtigter Actor gewählt werden.
-7. Jedes angelegte Item in Foundry öffnen und die Activities/Effekte durchspielen. Besonders bei Attack/Save/DAE/Midi-QOL ist das nötig.
+1. Bestehende Welt sichern. Die Version zunächst in einer Testwelt prüfen.
+2. Inhalt von `coast-forge-importer-github-source-v0.1.2.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
+3. GitHub-Release mit neuem Tag `v0.1.2` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.2.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
+4. Auf The Forge das Custom-Modul aktualisieren. Wenn der automatische Update-Check die Version noch nicht erkennt, dasselbe Manifest für den Update-/Installationsvorgang verwenden. Welt neu starten bzw. Browser neu laden und Modulversion prüfen.
+5. In Foundry als GM im Item-Verzeichnis **Coast Forge Import** öffnen. Alternativ im Script-Makro: `game.modules.get("coast-forge-importer").api.open();`
+6. JSON/TXT auswählen oder JSON-Text einfügen, Ziel wählen und auf **Vorschau prüfen** klicken. Pro Item optional **Bild wählen**, Bild auswählen, Vorschau kontrollieren und anschließend **Importieren**.
+7. Wenn die gewünschte Datei noch nicht in der Forge Assets Library liegt und der FilePicker keinen Upload zulässt, zuerst über die Assets Library hochladen und dann im FilePicker auswählen.
 
-## Änderungen in 0.1.1
+## Bestehende Fähigkeiten (v0.1.1)
 
-- Registriert den Item-Directory-Button bereits vor dem Foundry-Ready-Hook.
-- Unterstützt das ApplicationV2-Rendern des Item-Verzeichnisses sowie den bereits vorhandenen DOM-Baum beim Start.
-- Sucht in v13 zuerst nach `.directory-header .action-buttons`, mit Fallbacks für andere Oberflächen.
-- Achtet darauf, keine doppelten Buttons einzufügen.
-- **Unverifiziert in einer echten Foundry-Instanz:** Bitte nach F5 testen; das Makro bleibt als Fallback.
+- GM-Rechte, Mehrfachimport (maximal 100 Items), Zielordner bzw. Actor, Duplikat-Vermeidung anhand von Name und Typ.
+- Native D&D5e-Items/Activities/Effects. Feats, Features, Maneuvers, Spells, Waffen, Ausrüstung und weitere bisher unterstützte Typen.
+- Vorschau mit Datenmodell-Prüfung, Warnungen und Importergebnis.
+- Stabile Registrierung des Item-Directory-Buttons über die bestehenden Foundry-v13-Render-Hooks und den Ready-Hook.
+- Das Modul führt kein importiertes JavaScript aus. Nur vertrauenswürdige JSON-Dateien importieren: enthaltene Effect-/Makro-Flags können von anderen Modulen verarbeitet werden.
+- Unbestätigte Mechaniken, z. B. dynamische ItemGrant-Verknüpfungen, DAE-Timer und zusätzliche Midi-QOL-Automation, sind nicht automatisch implementiert.
 
-## Das Importformat
+## Tests
 
-Siehe **IMPORT_FORMAT.md**. Es ist normales, streng formatiertes JSON. Die Dateiendung darf `.json` oder `.txt` sein. **Unstrukturierter natürlicher Fließtext wird von diesem Modul nicht selbst verstanden:** ChatGPT übersetzt den Homebrew-Text vorab in das JSON-Format.
+`node --test tests/*.test.mjs`
 
-## Fähigkeiten und Grenzen in 0.1
+Die 11 neuen Tests für Icon-Auswahl und simulierte Importabläufe bestanden lokal. Darunter vier unterschiedliche Icons für die vier Cantrips, Reset, Abbruch, Actor- und Weltimport, Duplikat-Schutz, unveränderte Activities/Effects/Flags und 100 unabhängige Icon-Auswahlen. Diese Tests simulieren Foundry-APIs; der native FilePicker und das tatsächliche Rendering/Hosting-Verhalten müssen live geprüft werden. Die historische 92-Test-QA-Suite wurde nicht erneut ausgeführt. Der verbindliche QA-Standard v2.4 bleibt bestehen.
 
-- Mehrere Items pro Datei; Features, Maneuvers (als `feat`), Spells, Weapons, Equipment und weitere D&D5e-Itemtypen.
-- Preview + Fehlermeldungen + GM-Rechte + Duplikat-Vermeidung nach Name und Typ im Ziel.
-- Native D&D5e-Activities über `activities` (einschließlich Formelkürzel für `damageParts`) oder vollständige `system.activities`.
-- Speichert Active Effects. Ihre automatische Anwendung/Transferlogik ist versions- und modulspezifisch und **nicht garantiert**.
-- Unbekannte/komplexe Features werden **nicht magisch automatisiert**: API-Hooks, Midi-QOL-Makros, DAE-Timer, Short/Long Rest und Ressourcengrenzen benötigen spätere Implementierungen.
-- Spells erhalten im Beispiel Basisfelder. Spell-Komponenten, Range, Duration, Consumption, Concentration und Scaling können bereits als native `system`-Daten übergeben werden, erfordern aber exakte v5.2.5-Werte.
-- Noch kein Compendium-Export, keine Undo-Funktion, kein automatischer Icon-Upload und keine `Advancement`-Erstellung für Subclasses.
-- Kein automatisches Ausführen von mitgeliefertem JavaScript. Imports werden als JSON geparst.
+### Live-Test
 
-## Fehlersuche
-
-Wenn die Vorschau einen Schemafehler zeigt, klicke **nicht** auf Importieren. Die Meldung zeigt den Namen des betroffenen Items an. Bei laufendem Foundry unter **F12 -> Konsole** weitere Fehler prüfen.
-
-Sende für Fehlersuche bitte die **dnd5e-Systemversion** (in Foundry sichtbar), die **Fehlermeldung** und die **betroffene Beispiel-Datei**. Die erste Funktion, die wir gemeinsam live prüfen, ist der normale `utility`-Feat-Import.
-
-## Sicherheit
-
-Nur als Spielleitung verwendbar. Imports werden nicht online versendet. Kein `eval` oder `new Function`. JSON kann jedoch Effects/Makro-Flags enthalten, die andere installierte Module später verarbeiten: importiere daher nur selbst geprüfte Dateien.
-
-## Technischer Entwicklungsstand
-
-Die statischen Parser-/Builder-Tests (`node --test tests/*.test.mjs`) wurden lokal ausgeführt. **Foundry selbst steht hier nicht als lauffähige Testinstanz zur Verfügung**; darum ist das Paket ein installierbarer Prototyp, keine garantiert verifizierte Foundry-Liveversion.
+In einer Testwelt die mitgelieferte Datei `examples/29-legendary-cantrips-TEST.json` laden. Vier verschiedene Bilder auswählen, eines zurücksetzen und neu auswählen. Importieren und das Icon jedes erstellten Spells kontrollieren. Bestehen die Items im Ziel bereits, diese für den Test in der Testwelt entfernen oder ein anderes Importziel verwenden; bestehende Items werden nicht überschrieben.

@@ -1,8 +1,8 @@
 {
   "id": "coast-forge-importer",
   "title": "Coast Forge Importer",
-  "description": "Importiert strukturierte Homebrew-Textdateien (JSON/TXT) als D&D5e-Items mit Activities und Active Effects. Stabile Button-Registrierung in Foundry v13.",
-  "version": "0.1.1",
+  "description": "Importiert strukturierte Homebrew-Textdateien (JSON/TXT) als D&D5e-Items mit Activities und Active Effects. Individuelle Item-Icons in der Importvorschau.",
+  "version": "0.1.2",
   "authors": [
     {
       "name": "Coast Forge Projekt"
@@ -25,5 +25,5 @@
   "readme": "README.md",
   "url": "https://github.com/Lemurensohn/coast-forge-importer",
   "manifest": "https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json",
-  "download": "https://github.com/Lemurensohn/coast-forge-importer/releases/download/v0.1.1/coast-forge-importer-v0.1.1.zip"
+  "download": "https://github.com/Lemurensohn/coast-forge-importer/releases/download/v0.1.2/coast-forge-importer-v0.1.2.zip"
 }
