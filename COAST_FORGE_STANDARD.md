@@ -132,3 +132,33 @@ Once Zenith ends, you can't use it again until you finish a Long Rest.
 ## Versionierung
 
 Bei einem neuen dnd5e-Systemupdate zuerst die Bestätigungen für Attribute Keys, Activities und Attunement in einer Testwelt neu prüfen. Bei Änderungen am Importformat `schemaVersion` bewusst erhöhen und eine Migration implementieren. QA-Skripte können ohne Modul-Update im GitHub-Repository liegen; der Foundry-Release muss dafür nicht neu gebaut werden.
+
+
+## v1.6 – Angriffsschaden, Critical Allowed und Quelltreue (verbindlich)
+
+**Grundsatz:** Entscheidend ist die **Schadensursache**, nicht der Auslöser allein.
+
+| Wortlaut/Mechanik | Foundry-v13/D&D5e-2024-Umsetzung |
+|---|---|
+| „The attack deals an additional XdY damage“ | Zusätzliche Damage-Parts **derselben Attack-Activity**. `damage.critical.allow: true`. |
+| „The next time you hit, the attack deals ...“ | Bedingte Attack-Variante mit allen passenden Bonuswürfeln. Critical Allowed. |
+| „On a hit, ...“ mit nicht-schädlicher Condition | Effect bzw. Status am Treffer; kein eigener Schaden, sofern keiner beschrieben ist. |
+| „Immediately after you hit, ... expend a Charge ... save“ | Nach dem Treffer aktivierte Save-Activity, die die Ressource verbraucht. |
+| „At the start of each of its turns, it takes XdY damage“ | Separate Damage-Activity: **kein** Schaden des vorherigen Angriffs; keine Crit-Verdopplung. |
+
+**Regeln:**
+1. Jede Attack-Activity mit Schadenswürfeln hat `damage.critical.allow: true`, einschließlich Reaction Attacks. Bedingte Angriffswürfel gehören in normale `damage.parts`, **nicht** in das Feld „Extra Critical Damage“ und **nicht** als unabhängige Damage-Activity.
+2. Bei mehreren Bedingungen werden die **sämtlichen tatsächlich geltenden Boni** in benannten auswählbaren Attack-Activities abgebildet. Ein Bonus darf nicht doppelt enthalten sein. Nach Möglichkeit normale Grundattacke beibehalten.
+3. Zusatzschaden, der erst bei einem späteren Zeitpunkt ohne Angriffswurf entsteht (etwa Gaol Chains am Zugbeginn), bekommt eine eigene Damage-Activity und darf nicht kritisch verdoppelt werden.
+4. **Quelltreue:** Originalregeln nie nachträglich umschreiben, nur damit JSON-Aktivitäten konsistent wirken. Erst die *gesamten* Schadenswürfel einschließlich dauerhaftem Waffenbonus berechnen; dann die Activities bauen.
+5. Wenn der Nutzer später **andere Werte** nennt als im ursprünglichen Regeltext, diese Differenz kennzeichnen und die intendierte neue Regel klären, bevor die alte Beschreibung durch eine neue ersetzt wird. Zur automatischen Prüfung kann ein separat versionierter **Referenzvertrag** verwendet werden.
+6. „Critical Allowed“ ist eine verifizierbare JSON-Einstellung, aber die tatsächliche Würfelverdopplung ist weiterhin in Foundry/Midi-QOL zu testen.
+
+**Gravemark: Widerspruch, nicht stillschweigend lösen.** Originaler Text: Weight +2d8 oder +3d8; Prison Remembers +2d8; dauerhafter Waffenbonus +1d8. Spätere Attack-Anweisung: Weight +1d8/+2d8 und kombinierte +3d8/+4d8. Beide Zahlenreihen sind nicht gleichwertig. Der Referenzvertrag `contracts/gravemark-original.qa.json` hält bewusst die **ursprünglichen** Werte fest und meldet Abweichungen der späteren Importdatei. Erst eine ausdrücklich bestätigte Regeländerung darf eine neue Vertragsversion begründen.
+
+**Automatische QA v1.6:**
+- Für attack-basierte Würfel: Fehler, wenn `damage.critical.allow` nicht `true` ist.
+- Für benannte Regelabschnitte mit „the attack deals additional damage“: Fehler, wenn der Bonus unter derselben Fähigkeit als eigenständige Damage-Activity abgelegt ist.
+- Für verzögerten Schaden (z. B. Gaol Chains Zugbeginn): separate Damage-Activity zulässig.
+- Optionaler `--contract`-Check: vollständiger Quelltext-Abgleich auf vorgeschriebene Formulierungen, Typen, Krit-Einstellung und Summen der Bonuswürfel. **Nur Prüfmetadaten**, kein zusätzliches Foundry-Importfeld.
+- Freie natürliche Sprache wird nicht in jedem Sonderfall semantisch korrekt erkannt; komplexe Features benötigen weiterhin einen manuellen Regelabgleich. 
