@@ -15,7 +15,7 @@ const makeRows=()=>Array.from({length:4},(_,index)=>{
   return {dataset:{coastForgeRow:String(index)},querySelector:s=>elements[s],elements};
 });
 globalThis.foundry={applications:{api:{DialogV2:{
-  async prompt(opts){ return opts.ok.label==='Vorschau prüfen'?{text:fixture,destination:state.destination}:true; },
+  async prompt(opts){ return opts.ok.label==='Vorschau prüfen'?{text:fixture,destination:state.destination,mode:state.mode}:true; },
   async confirm(opts){
     assert.match(opts.content,/Cinder Snap/);
     assert.match(opts.content,/Grave Pinch/);
@@ -30,7 +30,7 @@ globalThis.Hooks={on(){},once(){}};
 globalThis.ui={notifications:{error(x){throw new Error(x);},warn(){},info(){}}};
 globalThis.CONFIG={Item:{documentClass:class{constructor(data){assert.ok(data.name);}}}};
 const actor={id:'actor1',name:'Test Actor',isOwner:true,items:{contents:[]},async createEmbeddedDocuments(type,docs){assert.equal(type,'Item');state.created.push(...structuredClone(docs));}};
-globalThis.game={user:{isGM:true},system:{id:'dnd5e',version:'5.2.5'},actors:{contents:[actor],get:()=>actor},folders:[{id:'folder1',type:'Item',name:'Coast Forge Imports',folder:null}],items:{contents:[]}};
+globalThis.game={settings:{get:()=>""},packs:{contents:[]},user:{isGM:true},system:{id:'dnd5e',version:'5.2.5'},actors:{contents:[actor],get:()=>actor},folders:[{id:'folder1',type:'Item',name:'Coast Forge Imports',folder:null}],items:{contents:[]}};
 globalThis.Item={implementation:{async createDocuments(docs){state.created.push(...structuredClone(docs));}}};
 const {openImporter}=await import('../scripts/main.mjs');
 const choose=async (row,path)=>{
@@ -41,7 +41,7 @@ const choose=async (row,path)=>{
   assert.equal(row.elements['.coast-forge-item-icon'].src,path);
 };
 function setup(interact,approved=true,destination='world'){
-  state={interact,approved,destination,pickers:[],created:[]};
+  state={interact,approved,destination,pickers:[],created:[],mode:"skip"};
   game.items.contents=[];actor.items.contents=[];
 }
 test('world import uses four different selected icons',async()=>{
@@ -78,4 +78,15 @@ test('existing items remain skipped, not overwritten by chosen image',async()=>{
   assert.deepEqual(result.skipped,['Cinder Snap']);
   assert.equal(state.created.length,3);
   assert.equal(game.items.contents[0].img,'old.png');
+});
+
+test('icon-only mode updates matched document and leaves new items importable',async()=>{
+  setup(async rows=>choose(rows[0],'new.png')); state.mode='icons';
+  const doc={id:'existing1',name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'old.png',async update(p){assert.deepEqual(Object.keys(p),['img']);this.img=p.img;}};
+  game.items.contents=[doc];const result=await openImporter();
+  assert.deepEqual(result.updated,['Cinder Snap']);assert.equal(doc.img,'new.png');assert.equal(state.created.length,3);
+});
+test('icon-only mode without selection keeps current icon',async()=>{
+  setup(async()=>{});state.mode='icons';const doc={id:'existing1',name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'old.png',async update(){throw Error('unexpected update');}};game.items.contents=[doc];
+  const result=await openImporter();assert.deepEqual(result.skipped,['Cinder Snap']);assert.equal(doc.img,'old.png');
 });

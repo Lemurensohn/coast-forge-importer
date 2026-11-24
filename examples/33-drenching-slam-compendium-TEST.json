@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Drenching Slam",
+      "kind": "feature",
+      "classification": "monster-feature",
+      "automation": "partial",
+      "description": "Melee Attack Roll: +6, reach 5 ft., one target. Hit: 1d8 + 3 Bludgeoning damage, and the target gains the [[condition:Drenched]] condition.",
+      "system": {
+        "type": {
+          "value": "monster"
+        }
+      },
+      "activities": [
+        {
+          "type": "attack",
+          "name": "Drenching Slam",
+          "activation": {
+            "type": "action",
+            "cost": 1
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "5",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "count": "1",
+              "type": "creature"
+            },
+            "override": true
+          },
+          "attack": {
+            "ability": "",
+            "type": {
+              "value": "melee",
+              "classification": "weapon"
+            },
+            "bonus": "6",
+            "flat": true
+          },
+          "damage": {
+            "includeBase": false,
+            "critical": {
+              "allow": true
+            },
+            "parts": [
+              {
+                "number": 1,
+                "denomination": 8,
+                "bonus": "3",
+                "types": [
+                  "bludgeoning"
+                ],
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                },
+                "scaling": {
+                  "mode": "",
+                  "number": null,
+                  "formula": ""
+                }
+              }
+            ]
+          },
+          "description": {
+            "chatFlavor": "On a hit, apply Drenched. Follow the condition’s normal duration."
+          },
+          "_id": "DrenchingSlam001"
+        }
+      ],
+      "effectRefs": [
+        {
+          "name": "Drenched",
+          "activityId": "DrenchingSlam001",
+          "onSave": false
+        }
+      ]
+    }
+  ]
+}

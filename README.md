@@ -1,4 +1,4 @@
-# Coast Forge Importer – v0.1.2
+# Coast Forge Importer – v0.1.4
 
 Foundry VTT v13 / dnd5e 5.x (Referenz 5.2.5), D&D 2024. Midi-QOL und DAE können installiert bleiben. Die Automatisierung einzelner importierter Mechaniken ist jeweils in Foundry zu prüfen.
 
@@ -8,9 +8,9 @@ Foundry VTT v13 / dnd5e 5.x (Referenz 5.2.5), D&D 2024. Midi-QOL und DAE können
 - Der native Foundry-v13-FilePicker (`foundry.applications.apps.FilePicker.implementation`) öffnet sich für Bilddateien. Die konfigurierte Implementierung wird verwendet, damit Hosting-spezifische Anpassungen möglich bleiben.
 - Der gewählte Asset-Pfad wird unverändert in `img` des zugehörigen Items übernommen, aber erst nach Bestätigung der Importvorschau. Reset stellt das ursprünglich aus der JSON bzw. dem Standardbild stammende Icon wieder her.
 - Ohne Auswahl bleibt das bisherige Icon erhalten. Abbrechen erstellt keine Items; ein bereits durch den FilePicker hochgeladenes Asset kann unabhängig davon in der Asset Library verbleiben.
-- Funktioniert im bestehenden Importpfad für Welt-Items und Actors. Duplikate werden weiterhin übersprungen, nicht nachträglich aktualisiert.
+- Funktioniert im bestehenden Importpfad für Welt-Items und Actors. Duplikate werden im Standardmodus übersprungen; seit v0.1.4 sind Updates optional.
 - Die bisherige JSON-Schema-Version 1 und die Activity-/Active-Effect-Verarbeitung bleiben unverändert. Die Bilder selbst müssen nicht in die JSON eingebettet werden.
-- Keine neuen automatisierten ItemGrant-Verknüpfungen, keine neue Effekt-Automation in diesem Release.
+- Historischer Funktionsumfang von v0.1.2; neue Funktionen siehe unten.
 
 ## Installation und Update (The Forge / GitHub)
 
@@ -19,8 +19,8 @@ Repository: https://github.com/Lemurensohn/coast-forge-importer
 Manifest: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
 
 1. Bestehende Welt sichern. Die Version zunächst in einer Testwelt prüfen.
-2. Inhalt von `coast-forge-importer-github-source-v0.1.2.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
-3. GitHub-Release mit neuem Tag `v0.1.2` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.2.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
+2. Inhalt von `coast-forge-importer-github-source-v0.1.4.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
+3. GitHub-Release mit neuem Tag `v0.1.4` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.4.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
 4. Auf The Forge das Custom-Modul aktualisieren. Wenn der automatische Update-Check die Version noch nicht erkennt, dasselbe Manifest für den Update-/Installationsvorgang verwenden. Welt neu starten bzw. Browser neu laden und Modulversion prüfen.
 5. In Foundry als GM im Item-Verzeichnis **Coast Forge Import** öffnen. Alternativ im Script-Makro: `game.modules.get("coast-forge-importer").api.open();`
 6. JSON/TXT auswählen oder JSON-Text einfügen, Ziel wählen und auf **Vorschau prüfen** klicken. Pro Item optional **Bild wählen**, Bild auswählen, Vorschau kontrollieren und anschließend **Importieren**.
@@ -47,3 +47,44 @@ In einer Testwelt die mitgelieferte Datei `examples/29-legendary-cantrips-TEST.j
 
 ## Grant Items (v0.1.3)
 Import `examples/30-the-golden-ledger-auto.json` into World Items. Each linked item has a unique `ref`. A parent declares `grantLinks: [{"advancementId":"GoldenLedger0001","refs":["golden-ledger-merchant-eye"]}]` referring to an existing empty native ItemGrant in its system.advancement. Import creates all documents, then links their actual UUIDs. Old JSON remains supported. Linked batches are not imported directly onto actors. Existing items from older imports without matching local refs must be renamed or removed before importing a linked batch. The importer does not delete or overwrite unrelated documents. Run `node --test tests/*.test.mjs` for local mock tests.
+
+## v0.1.4 — Compendium References und bestehende Items
+
+### Einmalige Einrichtung
+
+Im ersten Importdialog unter **Compendium-Referenzen** drei optionale Quellen auswählen:
+
+- **Condition Effects (Items)**: dein Item-Compendium mit je einem Feature, das den tatsächlichen eingebetteten Active Effect enthält.
+- **Condition Journals**: dein JournalEntry-Compendium mit gleichnamigen Journal Entries. Ohne Auswahl bleiben explizite Condition-Referenzen Klartext (Warnung).
+- **External Grant Items**: optionales Item-Compendium für schon existierende Features, Spells usw., die per ItemGrant gewährt werden sollen.
+
+Auswahl wird pro Welt nach Bestätigung der Vorschau gespeichert. Exakte Namensübereinstimmung, keine zufälligen Treffer und keine Suche in anderen Packs. Wenn ein ausgewählter Pack keinen eindeutigen Treffer enthält, Import vor den Item-Schreibvorgängen abbrechen. Bei mehreren Active Effects im Feature `effectName` angeben. Die Quellen werden nicht geändert.
+
+### Importformat (weiterhin schemaVersion 1)
+
+Im Item mit einer Activity mit expliziter 16-stelliger `_id`:
+
+```json
+"effectRefs": [{"name":"Drenched","activityId":"DrenchingSlam001","onSave":false}]
+```
+
+`effectName` und `pack` (vollständige Compendium-Collection-ID) sind optional. `onSave:false` bedeutet bei Save-Activities auf Fehlschlag; bei Attack-Activities prüft Midi-QOL den Treffer (abhängig von dessen Einstellungen). Der Effekt wird kopiert, mit neuer ID auf die Activity verdrahtet und nicht als passiver Transfer-Effekt angelegt. Der eigene Timer/DAE-Flags werden übernommen, aber nicht erfunden oder neu eingerichtet. Falls ein Makro oder andere Referenzen in der Quelle stehen, müssen diese im Ziel verfügbar sein. Ein Effekt mit Standard-SVG erhält das Artwork des Quell-Features; ein individuelles Effect-Icon bleibt erhalten. Spätere Änderungen im Quell-Compendium ändern bereits importierte Kopien nicht automatisch.
+
+In `description` kann `[[condition:Drenched]]` verwendet werden. Der Resolver setzt bei gewähltem Journal-Pack den echten `@UUID[...]{Drenched}`-Verweis ein. Native D&D5e-References und übrige Beschreibung bleiben unverändert. Darstellung und Spielerberechtigungen separat prüfen.
+
+Externe ItemGrant-Referenzen: `compendiumGrants: [{"advancementId":"GoldenLedger0001","items":[{"name":"Drenched","optional":false}]}]`. Die native Advancement-ID muss auf ein vorhandenes, zunächst leeres ItemGrant zeigen. Optional `pack` pro Item. Lokale `grantLinks` und externe `compendiumGrants` dürfen im selben Item unterschiedliche Advancement-IDs verwenden; nicht dieselbe ID. Nur World-Item-Importe.
+
+### Existing Items
+
+- **Skip Existing** (Standard): bisheriges Verhalten. Existierende Items werden nicht für neue Icons überschrieben; lokale Grants können wie bisher auf passende bestehende Items verweisen.
+- **Update Icons Only**: vorhandenes Icon als Startbild; nur eine neue, nicht zurückgesetzte Auswahl wird gespeichert. Neue Items werden wie gewohnt erstellt. Bei bereits bestehenden Parents werden Grant-Verknüpfungen nur geprüft, nicht geändert.
+- **Update Existing Items**: nur World Items im Ordner Coast Forge Imports. Die komplette JSON ersetzt die nativen Systemdaten und eingebetteten Effects (einschließlich eventuell manuell hinzugefügter); Item-UUID, Ordner, Berechtigungen, andere Flag-Scopes und bestehendes Icon bleiben soweit vorgesehen erhalten. Activities/Effects können neue IDs erhalten. Bei verknüpften Batches müssen vorhandene lokale Refs übereinstimmen. Alte Actor-Kopien und deren Ressourcen bleiben unverändert. Vollupdate ist keine Transaktion; bei Fehler können Teilschritte gespeichert bleiben. Welt sichern und zuerst in Testwelt prüfen.
+
+### Live-Test v0.1.4
+
+1. `examples/33-drenching-slam-compendium-TEST.json` laden. Condition Effects und optional Condition Journals einstellen; beide Einträge `Drenched` nennen. Feature muss genau einen Active Effect enthalten.
+2. Neues Item importieren oder bei bereits existierendem Drenching Slam ausdrücklich **Update Existing Items** wählen (Testwelt). Item-Icon separat auswählbar. Activity, eingebetteten Effect, dessen Bild/Flags und Journal-Link kontrollieren. Bei Treffer und Fehlschlag sowie Ablauf über zwei eigene Zugbeginne testen.
+3. `examples/30-the-golden-ledger-v2.json` in bereinigten Testordner importieren, sechs Icons wählen, fünf Grant-Links prüfen. Dann erneut mit Skip bzw. Update Icons Only importieren. Für Full Update eine Testkopie ändern und UUID, Systemdaten, Activities, Effects sowie Grant Links vergleichen.
+4. `examples/29-legendary-cantrips-TEST.json` erneut in Testwelt importieren: alter Einzel-/Massenimport und Actor-Import dürfen nicht regressieren.
+
+Lokale Testausführung: `node --test tests/*.test.mjs` — 47/47 Mock-Tests bestanden, darunter die 21 bisherigen. Kein echter Foundry-Server oder Midi-QOL-Workflow in diesen Tests. Die historische 92-Test-Suite ist nicht enthalten.

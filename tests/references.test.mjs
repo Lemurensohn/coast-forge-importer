@@ -1,0 +1,24 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {resolveReferences} from '../scripts/references.mjs';
+import {parseImport,buildItemData} from '../scripts/schema.mjs';
+const fixture=()=>parseImport(readFileSync(new URL('../examples/33-drenching-slam-compendium-TEST.json',import.meta.url),'utf8')).items;
+const base={_id:'OldEffect0000001',name:'Drenched',img:'icons/svg/aura.svg',transfer:true,disabled:true,origin:'Item.old',duration:{rounds:2,startRound:5},changes:[{key:'system.attributes.ac.bonus',mode:2,value:'-2'},{key:'system.attributes.movement.bonus',mode:2,value:'-20'}],flags:{dae:{specialDuration:['turnStart'],macroRepeat:'startEveryTurn'},world:{test:true}},description:'<p>Drenched.</p>'};
+const effect=()=>({name:base.name,toObject:()=>structuredClone(base)});
+const item=(effects=[effect()])=>({name:'Drenched',uuid:'Compendium.world.effects.Item.a',img:'forge/drenched.webp',effects:{contents:effects}});
+const journal={name:'Drenched',uuid:'Compendium.world.journals.JournalEntry.b'};
+function pack(type,docs){return {documentName:type,async getIndex(){return {contents:docs.map((d,i)=>({_id:String(i),name:d.name}))}},async getDocument(id){return docs[Number(id)];}};}
+const packs=(docs=[item()])=>new Map([['world.effects',pack('Item',docs)],['world.journals',pack('JournalEntry',[journal])],['world.other',pack('Item',[item(),item()])]]);
+const settings={effectPack:'world.effects',journalPack:'world.journals',itemPack:'world.effects'};
+const id=()=> 'NewEffect0000001';
+test('copy compendium effect, preserve mechanics and flags, use feature image, link to activity and journal',async()=>{
+ const original=fixture();const result=await resolveReferences(original,settings,packs(),id);const spec=result.items[0];const e=spec.effects[0];assert.equal(e.img,'forge/drenched.webp');assert.equal(e._id,id());assert.deepEqual(e.changes,base.changes);assert.deepEqual(e.flags.world,base.flags.world);assert.equal(e.flags.dae.showIcon,true);assert.equal(e.flags.dae.macroRepeat,base.flags.dae.macroRepeat);assert.deepEqual(e.duration,{rounds:2});assert.equal(e.origin,undefined);assert.equal(e.transfer,false);assert.equal(e.disabled,false);assert.deepEqual(spec.activities[0].effects,[{_id:id(),onSave:false}]);assert.match(spec.description,/@UUID\[Compendium.world.journals.JournalEntry.b\]\{Drenched\}/);assert.equal(original[0].effects,undefined);assert.equal(result.effects,1);assert.equal(result.journals,1);const built=buildItemData(spec,id);assert.equal(built.effects[0].img,'forge/drenched.webp');assert.match(built.system.description.value,/@UUID\[/);
+});
+test('custom effect artwork wins over feature image',async()=>{const d=item([{name:'Drenched',toObject:()=>({...base,img:'custom.webp'})}]);assert.equal((await resolveReferences(fixture(),settings,packs([d]),id)).items[0].effects[0].img,'custom.webp');});
+test('journal pack optional: plain name with warning',async()=>{const r=await resolveReferences(fixture(),{...settings,journalPack:''},packs(),id);assert.match(r.items[0].description,/Drenched condition/);assert.doesNotMatch(r.items[0].description,/\[\[condition:/);assert.ok(r.warnings.some(w=>w.includes('Klartext')));});
+for(const [name,ps,st] of [['missing',packs([]),settings],['ambiguous',packs([item(),item()]),settings],['unconfigured',packs(),{...settings,effectPack:''}],['wrong type',packs(),{...settings,effectPack:'world.journals'}],['no embedded effect',packs([item([])]),settings],['multiple embedded effects',packs([item([effect(),effect()])]),settings]]) test('reject '+name,async()=>assert.rejects(resolveReferences(fixture(),st,ps,id)));
+test('explicit effect name and onSave flag',async()=>{const input=fixture();input[0].effectRefs[0].effectName='Drenched';input[0].effectRefs[0].onSave=true;const r=await resolveReferences(input,settings,packs([item([effect(),{name:'other'}])]),id);assert.equal(r.items[0].activities[0].effects[0].onSave,true);});
+test('missing activity fails',async()=>{const i=fixture();i[0].effectRefs[0].activityId='NotFound00000001';await assert.rejects(resolveReferences(i,settings,packs(),id));});
+test('external item grant resolves actual compendium UUID',async()=>{const i=[{name:'Parent',kind:'feat',system:{advancement:[{_id:'Grant00000000001',type:'ItemGrant',configuration:{items:[]}}]},compendiumGrants:[{advancementId:'Grant00000000001',items:[{name:'Drenched'}]}]}];const r=await resolveReferences(i,settings,packs(),id);assert.deepEqual(r.items[0].system.advancement[0].configuration.items,[{uuid:item().uuid,optional:false}]);assert.equal(r.grants,1);});
+test('legacy items untouched',async()=>{const i=[{name:'Old',description:'&Reference[blinded]',kind:'feat'}];assert.deepEqual((await resolveReferences(i,{},packs(),id)).items,i);});

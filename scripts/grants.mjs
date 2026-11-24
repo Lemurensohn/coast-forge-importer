@@ -38,7 +38,7 @@ export function planGrants(items) {
   }
   return plans;
 }
-export async function linkGrants(plans, documents) {
+export async function linkGrants(plans, documents, {readOnlyParents = new Set()} = {}) {
   let linked = 0;
   // Validate all targets before any update.
   const updates = plans.map(plan => {
@@ -54,10 +54,13 @@ export async function linkGrants(plans, documents) {
     const items = children.map(c=>({uuid:c.uuid,optional:false}));
     const old = grant.configuration?.items ?? [];
     if (old.length && (old.length !== items.length || !items.every(i=>old.some(o=>o.uuid===i.uuid && !o.optional)))) throw new Error(`Existing grant differs: ${plan.parent}`);
-    return {parent, array, key, id:plan.id, items};
+    const readOnly = readOnlyParents.has(plan.parent);
+    if (readOnly && (!old.length || grant.configuration.optional === true)) throw new Error(`Existing grant needs a full update: ${plan.parent}`);
+    return {parent, array, key, id:plan.id, items, readOnly};
   });
   for (const u of updates) {
-    if (u.array) {
+    if (u.readOnly) { /* icon-only mode must not modify existing advancements */ }
+    else if (u.array) {
       const raw = structuredClone(u.parent.toObject().system.advancement);
       const grant = raw.find(a=>a._id===u.id);
       grant.configuration.items=u.items; grant.configuration.optional=false;

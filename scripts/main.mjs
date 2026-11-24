@@ -1,3 +1,5 @@
+import { PACK_SETTINGS, resolveReferences } from "./references.mjs";
+import { MODES, matchingItems, updateExisting } from "./updates.mjs";
 import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
 import { createIconChoices } from "./icons.mjs";
@@ -52,6 +54,11 @@ function addButtonFromSidebar(app, html) {
   const tab = root?.querySelector?.('#items, [data-tab="items"].directory, .item-directory');
   if (tab) addDirectoryButton(ui?.items, tab);
 }
+function packOptions(key, type) {
+  const selected = game.settings.get(MODULE_ID,key);
+  const packs = game.packs.contents.filter(p=>p.documentName===type).sort((a,b)=>a.title.localeCompare(b.title));
+  return `<option value="">Nicht ausgewählt</option>` + packs.map(p=>`<option value="${escapeHtml(p.collection)}" ${p.collection===selected?'selected':''}>${escapeHtml(p.title)} (${escapeHtml(p.collection)})</option>`).join('');
+}
 async function askSource() {
   const actors = game.actors.contents
     .filter(a => a.isOwner)
@@ -71,7 +78,13 @@ async function askSource() {
             <option value="world">Welt-Item-Verzeichnis (Ordner: Coast Forge Imports)</option>
             ${options}
           </select></div>
-        <p class="hint">Bestehende Items mit gleichem Namen und Typ am Ziel werden übersprungen. Das Modul führt keine Makros aus.</p>
+        <div class="form-group"><label>Existing Items</label><select name="mode"><option value="skip">Skip Existing (Standard)</option><option value="icons">Update Icons Only</option><option value="update">Update Existing Items (nur Welt-Items)</option></select></div>
+        <p class="hint">Vollupdate ersetzt Regeln, Activities, Effects und Advancements; UUID bleibt erhalten. Keine automatische Aktualisierung von Actor-Kopien.</p>
+        <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
+          <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
+          <div class="form-group"><label>Condition Journals</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
+          <div class="form-group"><label>External Grant Items</label><select name="itemPack">${packOptions('itemPack','Item')}</select></div>
+        </details><p class="hint">Das Modul führt keine Makros aus. Nur vertrauenswürdige JSON und Compendiums verwenden.</p>
       </div>`,
     ok: {
       label: "Vorschau prüfen",
@@ -80,7 +93,9 @@ async function askSource() {
         const file = form.elements.namedItem("sourceFile")?.files?.[0];
         const text = file ? await file.text() : form.elements.namedItem("sourceText")?.value;
         const destination = form.elements.namedItem("destination")?.value ?? "world";
-        return { text, destination };
+        const mode = form.elements.namedItem("mode")?.value ?? "skip";
+        const packSelections = Object.fromEntries(Object.keys(PACK_SETTINGS).map(key=>[key,form.elements.namedItem(key)?.value ?? ""]));
+        return { text, destination, mode, packSelections };
       }
     },
     rejectClose: false
@@ -101,7 +116,8 @@ function preflight(items) {
 }
 
 // v0.1.2: a native FilePicker for each preview row. Only img is changed.
-async function confirmPreview(preview, warnings, destination) {
+async function confirmPreview(preview, warnings, destination, mode = "skip") {
+  for (const row of preview) if (row.data && row.existing?.img) row.data.img = row.existing.img;
   const icons = createIconChoices(preview);
   let picker = null;
   let generation = 0;
@@ -119,8 +135,8 @@ async function confirmPreview(preview, warnings, destination) {
       <td>${escapeHtml(item.name)}</td>
       <td>${escapeHtml(item.type ?? item.kind ?? "")}</td>
       <td>${item.activities?.length ?? Object.keys(item.system?.activities ?? {}).length}</td>
-      <td>${item.effects?.length ?? 0}</td>
-      <td>${error ? `<span class="coast-forge-error">${escapeHtml(error)}</span>` : "✓"}</td>
+      <td>${data?.effects?.length ?? item.effects?.length ?? 0}</td>
+      <td>${error ? `<span class="coast-forge-error">${escapeHtml(error)}</span>` : escapeHtml(preview[index].existing ? (mode === "update" ? "Update" : mode === "icons" ? "Icon only (bei Auswahl)" : "Skip") : "Create")}</td>
       </tr>`;
   }).join("");
   const warningList = warnings.length
@@ -136,6 +152,7 @@ async function confirmPreview(preview, warnings, destination) {
       modal: false,
       content: `<div class="coast-forge-preview">
         <p><strong>${count} von ${preview.length} Items vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
+        ${mode === "update" ? `<p class="coast-forge-error"><strong>Vollupdate:</strong> Bestehende Regeln, Activities, Effects und Advancements werden ersetzt. Vorher Welt sichern; kein automatischer Rollback.</p>` : ""}
         <p class="hint">Optional: Wähle für jedes Item ein eigenes Bild aus der Foundry-Dateiauswahl. Ohne Auswahl bleibt das bisherige Icon erhalten.</p>
         <table><thead><tr><th>Icon</th><th>Name</th><th>Typ</th><th>Activities</th><th>Effekte</th><th>Prüfung</th></tr></thead><tbody>${rows}</tbody></table>
         ${warningList}<p class="hint">Die Vorschau ist eine lokale Datenmodellprüfung; sie garantiert noch keine funktionierende Midi-QOL-Automation.</p>
@@ -192,7 +209,10 @@ async function confirmPreview(preview, warnings, destination) {
       yes: { label: "Importieren" }, no: { label: "Abbrechen" },
       rejectClose: false
     });
-    if (approved) icons.commit();
+    if (approved) {
+      for (let i=0;i<preview.length;i++) preview[i].iconChanged=icons.changed(i);
+      icons.commit();
+    }
     return approved;
   } finally {
     active = false;
@@ -212,22 +232,25 @@ async function resolveTarget(destination) {
   if (!folder) folder = await Folder.create({ name: "Coast Forge Imports", type: "Item" });
   return { actor: null, folder };
 }
-async function performImport(preview, destination, plans = []) {
+async function performImport(preview, destination, plans = [], mode = "skip") {
   const documents = new Map();
   let linked = 0;
   const { actor, folder } = await resolveTarget(destination);
-  const successes = [], skipped = [], failures = [];
-  for (const { item, data, error } of preview) {
+  const successes = [], skipped = [], failures = [], updated = [];
+  for (const { item, data, error, iconChanged, existing } of preview) {
     if (error) { failures.push(`${item.name}: ${error}`); continue; }
     try {
       const collection = actor ? actor.items.contents : game.items.contents.filter(i => i.folder?.id === folder.id);
-      const matches = collection.filter(i => i.name === data.name && i.type === data.type);
+      const matches = matchingItems(collection,data);
+      if (mode !== "skip" && (matches.length > 1 || (existing?.id ?? null) !== (matches[0]?.id ?? null))) throw new Error("Target changed after preview or ambiguous match. Restart import.");
       if (matches.length) {
         if (plans.length && item.ref) {
           if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
           documents.set(item.ref, matches[0]);
         }
-        skipped.push(item.name); continue;
+        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(d).toObject())) updated.push(item.name);
+        else skipped.push(item.name);
+        continue;
       }
       if (actor) {
         await actor.createEmbeddedDocuments("Item", [data]);
@@ -242,10 +265,10 @@ async function performImport(preview, destination, plans = []) {
     }
   }
   if (plans.length && !failures.length) {
-    try { linked = await linkGrants(plans, documents); }
+    try { linked = await linkGrants(plans, documents, {readOnlyParents: new Set(mode === "icons" ? preview.filter(r=>r.existing).map(r=>r.item.ref) : [])}); }
     catch (err) { failures.push(`Grant Items: ${err.message}`); }
   } else if (plans.length) failures.push("Grant linking skipped because an item failed.");
-  const resultText = `${successes.length} importiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.${plans.length ? ` ${linked} Grant-Links bestätigt.` : ""}`;
+  const resultText = `${successes.length} importiert, ${updated.length} aktualisiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.${plans.length ? ` ${linked} Grant-Links bestätigt.` : ""}`;
   const failuresHtml = failures.length ? `<details open><summary>Fehler</summary><ul>${failures.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul></details>` : "";
   const skippedHtml = skipped.length ? `<details><summary>Übersprungen</summary><ul>${skipped.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul></details>` : "";
   await DialogV2.prompt({
@@ -255,7 +278,7 @@ async function performImport(preview, destination, plans = []) {
   });
   if (failures.length) ui.notifications.warn(`${TAG}: ${resultText}`);
   else ui.notifications.info(`${TAG}: ${resultText}`);
-  return { successes, skipped, failures, linked };
+  return { successes, skipped, failures, linked, updated };
 }
 export async function openImporter() {
   if (!game.user?.isGM) { ui.notifications.warn("Coast Forge: Nur Spielleitungen dürfen importieren."); return; }
@@ -268,20 +291,49 @@ export async function openImporter() {
     const entry = await askSource();
     if (!entry) return;
     const parsed = parseImport(entry.text);
-    const plans = planGrants(parsed.items);
+    const mode = entry.mode ?? "skip";
+    if (!MODES.includes(mode)) throw new Error("Unknown import mode.");
+    if (mode === "update" && entry.destination !== "world") throw new Error("Full updates are limited to World Items.");
+    const hasReferences = parsed.items.some(i=>i.effectRefs !== undefined || i.compendiumGrants !== undefined || i.description?.includes("[[condition:"));
+    if (entry.destination !== "world" && parsed.items.some(i=>i.compendiumGrants?.length)) throw new Error("Compendium grants require World Items.");
+    const resolved = hasReferences ? await resolveReferences(parsed.items,entry.packSelections ?? {},game.packs,()=>foundry.utils.randomID()) : {items:parsed.items,warnings:[]};
+    const plans = planGrants(resolved.items);
     if (plans.length && entry.destination !== "world") throw new Error("Linked advancement imports require World Items.");
-    const preview = preflight(parsed.items);
+    const preview = preflight(resolved.items);
+    parsed.warnings.push(...resolved.warnings);
+    const folder = entry.destination === "world" ? game.folders.find(f=>f.type==="Item" && f.name==="Coast Forge Imports" && !f.folder) : null;
+    const collection = entry.destination === "world" ? (folder ? game.items.contents.filter(i=>i.folder?.id===folder.id) : []) : game.actors.get(entry.destination)?.items.contents ?? [];
+    const seen = new Set();
+    for (const row of preview) if (row.data) {
+      const matches = matchingItems(collection,row.data);
+      const signature = JSON.stringify([row.data.name,row.data.type]);
+      if (mode!=="skip" && (matches.length>1 || seen.has(signature))) throw new Error(`${row.data.name}: ambiguous update target.`);
+      seen.add(signature);
+      if (matches.length===1) row.existing=matches[0];
+      if (plans.length && row.item.ref && matches.length && (matches.length!==1 || matches[0].flags?.[MODULE_ID]?.localRef!==row.item.ref)) throw new Error(`${row.data.name}: existing item does not match local reference.`);
+    }
+    if (mode==='update') {
+      if (preview.some(p=>p.error)) throw new Error('Full update blocked: invalid item in preview.');
+      parsed.warnings.unshift('Full update replaces existing system data and embedded effects; no automatic rollback. Back up the world.');
+    }
+    if (mode==='skip' && preview.some(p=>p.existing)) parsed.warnings.unshift('Existing items are skipped: selected new icons will not be applied.');
     if (plans.length && preview.some(p => p.error)) throw new Error("Linked import blocked: " + preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));
     if (plans.length) parsed.warnings.unshift(`${plans.reduce((n,p)=>n+p.refs.length,0)} Grant-Item-Verknüpfungen werden nach dem Import erstellt.`);
-    const approved = await confirmPreview(preview, parsed.warnings, entry.destination);
+    const approved = await confirmPreview(preview, parsed.warnings, entry.destination, mode);
     if (!approved) return;
     if (!preview.some(p => !p.error)) {
       ui.notifications.error("Coast Forge: Kein gültiges Item zum Importieren.");
       return;
     }
-    return await performImport(preview, entry.destination, plans);
+    if (entry.packSelections) for (const key of Object.keys(PACK_SETTINGS)) {
+      if (game.settings.get(MODULE_ID,key)!==entry.packSelections[key]) await game.settings.set(MODULE_ID,key,entry.packSelections[key]);
+    }
+    return await performImport(preview, entry.destination, plans, mode);
   } catch (error) { notifyError(error); }
 }
+Hooks.once("init",()=>{
+  for (const key of Object.keys(PACK_SETTINGS)) game.settings.register(MODULE_ID,key,{scope:"world",config:false,type:String,default:""});
+});
 Hooks.on("renderItemDirectory", addDirectoryButton);
 Hooks.on("renderItemDirectory5e", addDirectoryButton);
 Hooks.on("renderSidebarTab", (app, html) => {

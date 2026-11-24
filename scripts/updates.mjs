@@ -1,0 +1,45 @@
+export const MODES = ['skip','icons','update'];
+const clone = v => JSON.parse(JSON.stringify(v));
+export function matchingItems(collection,data) {return collection.filter(i=>i.name===data.name && i.type===data.type);}
+/** Updates only the chosen world template. Never propagates changes to actors. */
+export async function updateExisting(doc,data,mode,iconChanged,normalize=x=>x) {
+  if (!MODES.includes(mode)) throw new Error('Invalid update mode.');
+  if (mode==='skip') return false;
+  if (mode==='icons') {
+    if (!iconChanged) return false;
+    await doc.update({img:data.img});
+    if (doc.img!==data.img) throw new Error('Icon verification failed.');
+    return true;
+  }
+  if (doc.parent) throw new Error('Full update is restricted to World Items.');
+  const normalized=normalize(data);
+  const before=doc.toObject();
+  const flags=clone(before.flags ?? {});
+  for (const [scope,fields] of Object.entries(data.flags ?? {})) {
+    flags[scope]=scope==='coast-forge-importer'?clone(fields):{...(flags[scope]??{}),...clone(fields)};
+  }
+  // Keep the original document, folder, permissions, image unless selected.
+  const patch={system:clone(normalized.system),flags};
+  if (iconChanged) patch.img=data.img;
+  const next=clone(normalized.effects ?? data.effects ?? []);
+  const old=before.effects ?? [];
+  const ids=new Set(next.map(e=>e._id));
+  if (ids.size!==next.length || next.some(e=>!(/^[A-Za-z0-9]{16}$/.test(e._id ?? '')))) throw new Error('Invalid or duplicate effect ID.');
+  const oldIds=new Set(old.map(e=>e._id));
+  const add=next.filter(e=>!oldIds.has(e._id));
+  const edit=next.filter(e=>oldIds.has(e._id));
+  const remove=old.filter(e=>!ids.has(e._id)).map(e=>e._id);
+  // New effects first, system references second, obsolete effects last. Not transactional.
+  if (add.length) await doc.createEmbeddedDocuments('ActiveEffect',add,{keepId:true});
+  if (edit.length) await doc.updateEmbeddedDocuments('ActiveEffect',edit,{diff:false,recursive:false});
+  await doc.update(patch,{diff:false,recursive:false});
+  if (remove.length) await doc.deleteEmbeddedDocuments('ActiveEffect',remove);
+  const saved=doc.toObject();
+  const actual=new Set((saved.effects??[]).map(e=>e._id));
+  if (actual.size!==ids.size || [...ids].some(id=>!actual.has(id))) throw new Error('Updated effect IDs did not match.');
+  const expectedActivities=Object.keys(patch.system.activities??{}).sort();
+  const actualActivities=Object.keys(saved.system.activities??{}).sort();
+  if (JSON.stringify(expectedActivities)!==JSON.stringify(actualActivities)) throw new Error('Updated activity IDs did not match.');
+  if (iconChanged && doc.img!==data.img) throw new Error('Icon verification failed.');
+  return true;
+}
