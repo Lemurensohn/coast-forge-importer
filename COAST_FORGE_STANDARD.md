@@ -1,4 +1,4 @@
-# Coast Forge — Verbindlicher Import- und Qualitätsstandard v2.3
+# Coast Forge — Verbindlicher Import- und Qualitätsstandard v2.4
 
 **Zielsystem:** Foundry VTT **v13**, D&D5e **2024-Regeln**, installiertes **dnd5e 5.x** (exakte Minor-Version im Live-Test feststellen), Midi-QOL und ggf. DAE; Hosting: The Forge.
 
@@ -284,3 +284,52 @@ Das QA-Kit lehnt fehlende Feature-Kategorie, fehlende native Unterkategorie, fal
 - Die echte Würfelberechnung und der gewählte Feat Type „Fighting Style“ benötigen weiterhin Foundry-Livebestätigung.
 
 **Testfall:** `27-hunters-angle-advancement-scaling-TEST.json` verwendet die gewünschte Native-Scale-Struktur als expliziten Test. Falls D&D5e auf dem Feat keine Skala bereitstellt, kein `@details.level`-Workaround! Stattdessen Parent-Item-Integration umsetzen.
+
+
+## QA v2.4 — Produktionsmodus, bestätigte Vorlagen und PB-Limited Uses
+
+**Ziel:** Der normale Import soll nicht jedes Mal das gesamte QA-Kit neu entwickeln. Bekanntes wird aus der zuletzt erfolgreich getesteten Referenz-Datei übernommen; neue Mechaniken bekommen nur dann neue Tests und einen neuen QA-Stand, wenn der reale Import einen neuen Fall aufdeckt.
+
+### Bestätigte Referenzen — Umfang der Bestätigung
+
+| Referenz | Vom Nutzer in Foundry bestätigt | Noch gesondert zu prüfen |
+|---|---|---|
+| `examples/27-hunters-angle-advancement-scaling-TEST.json` | Der Nutzer hat die native `ScaleValue`-Struktur für Hunter's Angle als **richtig und gut umgesetzt** bestätigt. Die Ein-Button-/Post-Hit-Activity-Struktur bleibt verbindlich. | Ob jede Stufe, der Critical-Roll und insbesondere *Feat Type → Fighting Style* im Details-Dropdown vollständig korrekt sind, wurde nicht separat bestätigt. |
+| `examples/28-brutal-follow-through-legendary-maneuver.json` | Der Nutzer hat erklärt: **„Super das Ding funktioniert.“** Gemeint ist die importierte Technik mit `@prof` Damage, PB-Maximum und Long-Rest-Recovery. | Fighting-Style-Subtype weiterhin nicht ausdrücklich im Dropdown nachgewiesen; genauer Schadenstyp laut Originaltext nicht spezifiziert. |
+| Ring of Sun (mehrere JSON-Tests) | AC nach Charaktersheet-Korrektur, globaler Save-Bonus mit `system.bonuses.abilities.save`, grundlegende Item- und Effect-Struktur. | Zenith/Temporal-Effect-Verhalten und DAE-Symbolanzeige nicht pauschal als live verifiziert einstufen. |
+| Gravemark | Import komplexer Waffen und Activities als weitgehend erfolgreich gemeldet. | Korrekte Crit-Würfe aller kombinierten Varianten, Charges und bedingte Effekte pro Mechanik weiterhin separat testen. |
+
+**Keine falschen Garantien:** User-Erfolgsmeldungen gelten für den getesteten Gesamtworkflow, nicht automatisch für jede einzelne intern vermutete Eigenschaft.
+
+### Verbindliches Muster: einmal pro Treffer, PB-Schaden und PB-Uses
+
+Für den Originaltext von **Brutal Follow-Through**:
+
+- `kind: "maneuver"` und `classification: "fighting-style-feat"`; nativer Feat-Subtype bleibt als eigener Live-Kontrollpunkt.
+- **Eine** Damage-Activity, `activation.type: "special"`, **kein** zusätzlicher Action-/Bonus-Action-Aufwand.
+- `damage.parts[].custom.formula: "@prof"` für den festen Bonus; **keine Würfel** und keine erfundene Skalierung.
+- `damage.critical.allow: true` gemäß gewünschtem importiertem Activity-Standard. Der **feste** Bonus wird durch einen Crit nicht verdoppelt.
+- `system.uses.max: "@prof"`, `system.uses.recovery: [{"period":"lr","type":"recoverAll"}]` und genau **1** `itemUses`-Verbrauch beim Einsatz.
+- Der Stoß 10 Feet und *Large or smaller* bleiben in der englischen Description und werden manuell abgewickelt. Keine unbestätigte automatische Push-Makrologik erfinden.
+- Die Beschränkung **once during each of your turns** ist eine eigene Regel neben der PB-Verbrauchsanzeige. Nicht als kostenpflichtige Bonus Action missverstehen.
+- Statischer QA-Test validiert `@prof`, Long Rest, Verbrauch, Kosten, Critical Allowed und die exakte Formula. Dieser Test allein beweist noch keine Midi-QOL-Abwicklung bei anderen Foundry-/D&D5e-Minorversionen.
+
+### Produktionsfreigabe (neue verbindliche Definition)
+
+1. **Quelltext lesen:** Regelteil + Trigger + Schadensquelle + Zeitpunkt + erforderliche Ressourcen bestimmen. Keine Textänderungen oder stillschweigenden Neugewichtungen.
+2. **Vorlage wählen:** Hunter's Angle für native Advancement-Skalierung; Brutal Follow-Through für PB-Ressourcen und nach dem Treffer gewürfelten festen Schaden; Gravemark für Weapon-Attack-Varianten; Ring of Sun für Attunement und Effekte.
+3. **Format prüfen:** `scripts/schema.mjs` des **installierten** Importers lesen, danach `tools/validate-import.mjs` und `node --test tests/*.test.mjs` ausführen.
+4. **Release-Notiz:** Nur Dateien liefern, die die statische Prüfung bestanden haben; offene D&D5e-/Midi-QOL-Fragen als Live-Test deklarieren. Keine künstlichen Versprechen zu vollautomatischen Effekten.
+5. **QA nur bei echtem Befund aktualisieren:** Neues Schema-/Datenproblem → Regressionsfixture und Test; bekannte Vorlage → direkt JSON liefern. Der Benutzer erhält standardmäßig **eine JSON-Datei**, nicht immer eine neue QA-ZIP.
+
+### Nächste Modulversion — vorbereiteter Scope, noch nicht implementiert
+
+**Coast Forge Importer v0.1.2 (Plan):**
+
+- Im **Importdialog** dieselben QA-Warnungen wie im externen Prüfer sichtbar machen, insbesondere ungültige IDs und fehlende native Subtype-Felder.
+- Feat Type / Fighting Style anhand der **tatsächlich laufenden D&D5e-Konfiguration** validieren, statt geratenen Enum-Werten blind zu vertrauen; importierte Items gegen die erlaubten Select-Optionen prüfen.
+- Vor dem eigentlichen Erstellen eine Übersicht von Activities, Uses, Damage, Recovery und Effects anzeigen; invalides Schema blockieren und verständliche Fehler liefern.
+- Im späteren Schritt `@UUID`-Condition-Links und sauberes HTML-Rich-Text-Rendering ergänzen; nur nach gesondertem Test.
+- Automatisches Umschreiben von Nutzer-Regeltexten, erzwungenes Ändern der Homebrew-Balance und ungetestete Makros **nicht** als Release-Ziel.
+
+**Release-Routine:** Neue Modulversion benötigt aktualisierte `module.json` im Repository **und** im GitHub-Release, zusammen mit einer ZIP gleichen Versionsnamens. Reines QA-Update ändert die installierte Modulversion **nicht**.
