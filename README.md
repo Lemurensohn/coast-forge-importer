@@ -44,3 +44,6 @@ Die 11 neuen Tests für Icon-Auswahl und simulierte Importabläufe bestanden lok
 ### Live-Test
 
 In einer Testwelt die mitgelieferte Datei `examples/29-legendary-cantrips-TEST.json` laden. Vier verschiedene Bilder auswählen, eines zurücksetzen und neu auswählen. Importieren und das Icon jedes erstellten Spells kontrollieren. Bestehen die Items im Ziel bereits, diese für den Test in der Testwelt entfernen oder ein anderes Importziel verwenden; bestehende Items werden nicht überschrieben.
+
+## Grant Items (v0.1.3)
+Import `examples/30-the-golden-ledger-auto.json` into World Items. Each linked item has a unique `ref`. A parent declares `grantLinks: [{"advancementId":"GoldenLedger0001","refs":["golden-ledger-merchant-eye"]}]` referring to an existing empty native ItemGrant in its system.advancement. Import creates all documents, then links their actual UUIDs. Old JSON remains supported. Linked batches are not imported directly onto actors. Existing items from older imports without matching local refs must be renamed or removed before importing a linked batch. The importer does not delete or overwrite unrelated documents. Run `node --test tests/*.test.mjs` for local mock tests.

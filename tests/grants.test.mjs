@@ -1,0 +1,13 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {planGrants,linkGrants} from '../scripts/grants.mjs';
+import {parseImport,buildItemData} from '../scripts/schema.mjs';
+const fixture=()=>JSON.parse(readFileSync(new URL('../examples/30-the-golden-ledger-auto.json',import.meta.url)));
+function docs(items,object){return new Map(items.map((i,n)=>{const data=buildItemData(i,()=>String(n).padStart(16,'0'));if(object&&data.system.advancement)data.system.advancement=Object.fromEntries(data.system.advancement.map(a=>[a._id,a]));return [i.ref,{uuid:`Item.${n}`,toObject:()=>structuredClone(data),async update(p){for(const [k,v] of Object.entries(p)){const path=k.split('.');let o=data;for(const part of path.slice(0,-1))o=o[part];o[path.at(-1)]=structuredClone(v);}}}];}));}
+test('legacy JSON has no links',()=>assert.deepEqual(planGrants([{name:'Old'}]),[]));
+test('Golden Ledger has four links and retains metadata',()=>{const x=fixture();parseImport(JSON.stringify(x));assert.equal(planGrants(x.items)[0].refs.length,4);assert.equal(buildItemData(x.items[0]).flags['coast-forge-importer'].localRef,x.items[0].ref);});
+for(const object of [false,true])test(`links and verifies ${object?'object':'array'} advancements; repeat safe`,async()=>{const x=fixture(),p=planGrants(x.items),d=docs(x.items,object);assert.equal(await linkGrants(p,d),4);assert.equal(await linkGrants(p,d),4);});
+for(const [label,mutate] of [['missing ref',x=>x.items.pop()&&x.items.push({...fixture().items.at(-1),grantLinks:[{advancementId:'GoldenLedger0001',refs:['missing']} ]})],['duplicate ref',x=>x.items[1].ref=x.items[0].ref],['self ref',x=>x.items.at(-1).grantLinks[0].refs=['golden-ledger']],['bad advancement',x=>x.items.at(-1).grantLinks[0].advancementId='bad']])test(`rejects ${label}`,()=>{const x=fixture();mutate(x);assert.throws(()=>planGrants(x.items));});
+test('missing created document prevents updates',async()=>{const x=fixture(),d=docs(x.items,true);d.delete(x.items[0].ref);await assert.rejects(linkGrants(planGrants(x.items),d));assert.deepEqual(Object.values(d.get('golden-ledger').toObject().system.advancement)[0].configuration.items,[]);});
+test('conflicting existing grant is not overwritten',async()=>{const x=fixture(),d=docs(x.items,true),p=d.get('golden-ledger');await p.update({'system.advancement.GoldenLedger0001.configuration.items':[{uuid:'Item.other',optional:false}]});await assert.rejects(linkGrants(planGrants(x.items),d));assert.equal(Object.values(p.toObject().system.advancement)[0].configuration.items[0].uuid,'Item.other');});

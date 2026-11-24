@@ -1,3 +1,4 @@
+import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
 import { createIconChoices } from "./icons.mjs";
 
@@ -211,19 +212,28 @@ async function resolveTarget(destination) {
   if (!folder) folder = await Folder.create({ name: "Coast Forge Imports", type: "Item" });
   return { actor: null, folder };
 }
-async function performImport(preview, destination) {
+async function performImport(preview, destination, plans = []) {
+  const documents = new Map();
+  let linked = 0;
   const { actor, folder } = await resolveTarget(destination);
   const successes = [], skipped = [], failures = [];
   for (const { item, data, error } of preview) {
     if (error) { failures.push(`${item.name}: ${error}`); continue; }
     try {
       const collection = actor ? actor.items.contents : game.items.contents.filter(i => i.folder?.id === folder.id);
-      const exists = collection.some(i => i.name === data.name && i.type === data.type);
-      if (exists) { skipped.push(item.name); continue; }
+      const matches = collection.filter(i => i.name === data.name && i.type === data.type);
+      if (matches.length) {
+        if (plans.length && item.ref) {
+          if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
+          documents.set(item.ref, matches[0]);
+        }
+        skipped.push(item.name); continue;
+      }
       if (actor) {
         await actor.createEmbeddedDocuments("Item", [data]);
       } else {
-        await Item.implementation.createDocuments([{ ...data, folder: folder.id }]);
+        const created = await Item.implementation.createDocuments([{ ...data, folder: folder.id }]);
+        if (plans.length && item.ref) documents.set(item.ref, created?.[0]);
       }
       successes.push(item.name);
     } catch (err) {
@@ -231,7 +241,11 @@ async function performImport(preview, destination) {
       console.error(`${TAG} | Import fehlgeschlagen: ${item.name}`, err);
     }
   }
-  const resultText = `${successes.length} importiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.`;
+  if (plans.length && !failures.length) {
+    try { linked = await linkGrants(plans, documents); }
+    catch (err) { failures.push(`Grant Items: ${err.message}`); }
+  } else if (plans.length) failures.push("Grant linking skipped because an item failed.");
+  const resultText = `${successes.length} importiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.${plans.length ? ` ${linked} Grant-Links bestätigt.` : ""}`;
   const failuresHtml = failures.length ? `<details open><summary>Fehler</summary><ul>${failures.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul></details>` : "";
   const skippedHtml = skipped.length ? `<details><summary>Übersprungen</summary><ul>${skipped.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul></details>` : "";
   await DialogV2.prompt({
@@ -241,7 +255,7 @@ async function performImport(preview, destination) {
   });
   if (failures.length) ui.notifications.warn(`${TAG}: ${resultText}`);
   else ui.notifications.info(`${TAG}: ${resultText}`);
-  return { successes, skipped, failures };
+  return { successes, skipped, failures, linked };
 }
 export async function openImporter() {
   if (!game.user?.isGM) { ui.notifications.warn("Coast Forge: Nur Spielleitungen dürfen importieren."); return; }
@@ -254,14 +268,18 @@ export async function openImporter() {
     const entry = await askSource();
     if (!entry) return;
     const parsed = parseImport(entry.text);
+    const plans = planGrants(parsed.items);
+    if (plans.length && entry.destination !== "world") throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(parsed.items);
+    if (plans.length && preview.some(p => p.error)) throw new Error("Linked import blocked: " + preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));
+    if (plans.length) parsed.warnings.unshift(`${plans.reduce((n,p)=>n+p.refs.length,0)} Grant-Item-Verknüpfungen werden nach dem Import erstellt.`);
     const approved = await confirmPreview(preview, parsed.warnings, entry.destination);
     if (!approved) return;
     if (!preview.some(p => !p.error)) {
       ui.notifications.error("Coast Forge: Kein gültiges Item zum Importieren.");
       return;
     }
-    return await performImport(preview, entry.destination);
+    return await performImport(preview, entry.destination, plans);
   } catch (error) { notifyError(error); }
 }
 Hooks.on("renderItemDirectory", addDirectoryButton);

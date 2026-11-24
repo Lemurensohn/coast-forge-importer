@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Merchant's Eye",
+      "kind": "feat",
+      "classification": "feat",
+      "automation": "manual",
+      "description": "Choose two of the following skills:\n\nPersuasion\nInsight\nInvestigation\nHistory\nEyesight\n\nYou gain proficiency in the chosen skills.\n\nIf you are already proficient in one of them, you gain Expertise in that skill instead.",
+      "system": {
+        "type": {
+          "value": "feat",
+          "subtype": ""
+        }
+      },
+      "flags": {
+        "world": {
+          "coastForgeOrigin": "the-golden-ledger",
+          "coastForgeOriginRole": "child"
+        }
+      },
+      "ref": "golden-ledger-merchant-eye"
+    },
+    {
+      "name": "Extensive Network",
+      "kind": "feat",
+      "classification": "feat",
+      "automation": "partial",
+      "description": "Your connections reach farther than most people realize.\n\nOnce per Long Rest, when entering a settlement, you may declare that you possess a business contact in the area.\n\nWork with the DM to determine the nature of the contact.\n\nThe contact may provide:\n\nInformation\nIntroductions\nLodging\nTransportation\nAccess to local markets\nBusiness opportunities\nLocal rumors\nSpecialized services\n\nThe contact is not automatically loyal and may require payment, favors, or assistance before helping you.",
+      "system": {
+        "type": {
+          "value": "feat",
+          "subtype": ""
+        },
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "flags": {
+        "world": {
+          "coastForgeOrigin": "the-golden-ledger",
+          "coastForgeOriginRole": "child"
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Extensive Network",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          }
+        }
+      ],
+      "ref": "golden-ledger-network"
+    },
+    {
+      "name": "Reputation of Coin",
+      "kind": "feat",
+      "classification": "feat",
+      "automation": "manual",
+      "description": "Your name carries weight among merchants and traders.\n\nWhen purchasing mundane goods, lodging, transportation, supplies, tools, crafting materials, or other nonmagical services, prices are reduced by 20% for you and your companions whenever negotiation would reasonably be possible.\n\nAdditionally, merchants are generally willing to negotiate with you before refusing a deal outright.",
+      "system": {
+        "type": {
+          "value": "feat",
+          "subtype": ""
+        }
+      },
+      "flags": {
+        "world": {
+          "coastForgeOrigin": "the-golden-ledger",
+          "coastForgeOriginRole": "child"
+        }
+      },
+      "ref": "golden-ledger-reputation"
+    },
+    {
+      "name": "Golden Opportunity",
+      "kind": "feat",
+      "classification": "feat",
+      "automation": "partial",
+      "description": "Years of experience have taught you how to recognize opportunities others overlook.\n\nOnce per Long Rest, you may ask the DM one of the following questions:\n\nWhat is the most valuable thing here?\nWho has the most influence here?\nWho stands to gain the most from this situation?\nWhat opportunity are we overlooking?\n\nThe DM must answer truthfully and provide enough information for you to reasonably pursue the lead.\n\nThe answer may reveal a profitable venture, influential individual, hidden resource, political advantage, potential ally, valuable information, or another meaningful opportunity.",
+      "system": {
+        "type": {
+          "value": "feat",
+          "subtype": ""
+        },
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "flags": {
+        "world": {
+          "coastForgeOrigin": "the-golden-ledger",
+          "coastForgeOriginRole": "child"
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Golden Opportunity",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          }
+        }
+      ],
+      "ref": "golden-ledger-opportunity"
+    },
+    {
+      "name": "The Golden Ledger",
+      "kind": "feat",
+      "classification": "feat",
+      "automation": "manual",
+      "description": "Legendary Origin\n\nSome people inherit kingdoms.\n\nOthers inherit prophecies, divine blessings, forgotten bloodlines, or ancient secrets.\n\nYou inherited opportunity.\n\nWhether you were born into a powerful merchant house, adopted by a trading dynasty, raised among caravans, or simply discovered early in life that you possessed a talent few others shared, one truth became clear long before your first adventure:\n\nYou understand value.\n\nNot merely the value of gold, but the value of information, relationships, influence, timing, and trust. While others trained with sword or spell, you learned how deals are made, how fortunes are built, and how entire nations can be influenced by agreements signed behind closed doors.\n\nThe greatest merchant houses understand something many rulers never truly grasp.\n\nGold is not power.\nGold is merely the tool used to acquire it.\nThe true currency of the world is influence.\nA favor owed.\nA debt unpaid.\nA contact in the right city.\nA shipment arriving at the perfect moment.\nThe ability to place the right person in the right room at exactly the right time.\n\nOver the years you have cultivated a network of relationships that stretches far beyond what most people would expect. Merchants, caravan masters, ship captains, craftsmen, bankers, brokers, nobles, guild officials, and adventurers all form part of a web that continues to expand wherever opportunity exists.\n\nSome people see wealth as a destination.\n\nYou see it as a means to something far greater.\n\nMerchant's Eye\n\nChoose two of the following skills:\n\nPersuasion\nInsight\nInvestigation\nHistory\nEyesight\n\nYou gain proficiency in the chosen skills.\n\nIf you are already proficient in one of them, you gain Expertise in that skill instead.\n\nExtensive Network\n\nYour connections reach farther than most people realize.\n\nOnce per Long Rest, when entering a settlement, you may declare that you possess a business contact in the area.\n\nWork with the DM to determine the nature of the contact.\n\nThe contact may provide:\n\nInformation\nIntroductions\nLodging\nTransportation\nAccess to local markets\nBusiness opportunities\nLocal rumors\nSpecialized services\n\nThe contact is not automatically loyal and may require payment, favors, or assistance before helping you.\n\nReputation of Coin\n\nYour name carries weight among merchants and traders.\n\nWhen purchasing mundane goods, lodging, transportation, supplies, tools, crafting materials, or other nonmagical services, prices are reduced by 20% for you and your companions whenever negotiation would reasonably be possible.\n\nAdditionally, merchants are generally willing to negotiate with you before refusing a deal outright.\n\nGolden Opportunity\n\nYears of experience have taught you how to recognize opportunities others overlook.\n\nOnce per Long Rest, you may ask the DM one of the following questions:\n\nWhat is the most valuable thing here?\nWho has the most influence here?\nWho stands to gain the most from this situation?\nWhat opportunity are we overlooking?\n\nThe DM must answer truthfully and provide enough information for you to reasonably pursue the lead.\n\nThe answer may reveal a profitable venture, influential individual, hidden resource, political advantage, potential ally, valuable information, or another meaningful opportunity.",
+      "system": {
+        "type": {
+          "value": "feat",
+          "subtype": ""
+        },
+        "advancement": [
+          {
+            "_id": "GoldenLedger0001",
+            "type": "ItemGrant",
+            "level": 0,
+            "title": "Legendary Origin Features",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          }
+        ]
+      },
+      "flags": {
+        "world": {
+          "coastForgeOrigin": "the-golden-ledger",
+          "coastForgeOriginRole": "parent"
+        }
+      },
+      "ref": "golden-ledger",
+      "grantLinks": [
+        {
+          "advancementId": "GoldenLedger0001",
+          "refs": [
+            "golden-ledger-merchant-eye",
+            "golden-ledger-network",
+            "golden-ledger-reputation",
+            "golden-ledger-opportunity"
+          ]
+        }
+      ]
+    }
+  ]
+}

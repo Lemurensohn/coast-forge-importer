@@ -164,6 +164,7 @@ export function buildItemData(spec, makeId) {
   const flags = clone(spec.flags ?? {});
   flags["coast-forge-importer"] = {
     schemaVersion: SCHEMA_VERSION,
+    ...(spec.ref ? {localRef: spec.ref} : {}),
     originalKind: String(spec.kind ?? type),
     automation: String(spec.automation ?? "unknown")
   };
