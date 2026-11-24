@@ -1,4 +1,4 @@
-# Coast Forge — Verbindlicher Import- und Qualitätsstandard v1.1
+# Coast Forge — Verbindlicher Import- und Qualitätsstandard v1.2
 
 **Zielsystem:** Foundry VTT **v13**, D&D5e **2024-Regeln**, installiertes **dnd5e 5.x** (exakte Minor-Version im Live-Test feststellen), Midi-QOL und ggf. DAE; Hosting: The Forge.
 
@@ -6,7 +6,7 @@
 
 ## Arbeitsprozess: bei JEDEM Item
 
-1. **Regeltexte strikt trennen:** `items[].description` ist der vollständige englische, lesbare D&D-2024-Regeltext des Items. `items[].effects[].description` ist **nur** die präzise Wirkung dieses einen Active Effects, ebenfalls in Spieler-Regelsprache. Keine technische Key-Liste und keine Bedienungs-/Testanweisungen in einer der beiden Descriptions. Keine unbeabsichtigten Änderungen an Mechanik oder Balancing. Coast Forge v0.1.1 rendert **Plain Text**, kein HTML-Markup; Foundry-Links sind separat auf Kompatibilität zu testen.
+1. **Regeltexte strikt trennen:** `items[].description` ist der vollständige englische, lesbare D&D-2024-Regeltext des Items. `items[].effects[].description` enthält den **vollständigen Regeltext der benannten Fähigkeit**, zu der der Effekt gehört – auch Wirkungen, die separat gewürfelt oder manuell durchgeführt werden; ebenfalls in Spieler-Regelsprache. Keine technische Key-Liste und keine Bedienungs-/Testanweisungen in einer der beiden Descriptions. Keine unbeabsichtigten Änderungen an Mechanik oder Balancing. Coast Forge v0.1.1 rendert **Plain Text**, kein HTML-Markup; Foundry-Links sind separat auf Kompatibilität zu testen.
 2. **Mechanikmatrix bilden:** Alle Boni, Conditions, Saves, Damage, Dauer, Attunement, Uses, Recovery, Activation, Targets, Item-Properties und manuelle Schritte notieren. Keine Regel übersehen.
 3. **Schema/Parser bestimmen die Form:** `schemaVersion: 1`, `items: []`, `kind`, `system`, `activities`, `effects`. Keine erfundenen Felder oder ältere 2014-Angriffsfelder. Der native D&D5e-`system`-Block wird durchgereicht, muss also in der installierten D&D5e-Version gültig sein.
 4. **Getestete Schablonen bevorzugen:** Bei bekanntem Mechanismus die im Foundry-Livetest bestätigte Struktur verwenden; nicht bei jedem Item neu raten. Neue/unsichere Attribute Keys nicht als bestätigt ausgeben.
@@ -24,9 +24,9 @@
 
 ### Effect Description (`items[].effects[].description`)
 
-- **Nur die regeltechnischen Auswirkungen, die dieser einzelne Active Effect tatsächlich repräsentiert.** Kein Duplikat der gesamten Item Description und keine Zusammenfassung von Fähigkeiten, die ausschließlich durch separate Activities oder manuell abgewickelt werden.
+- **Die vollständige Spielregelbeschreibung der benannten Fähigkeit**, die dieser Effect im Charakterblatt repräsentiert, einschließlich aller zugehörigen Vorteile, Schadenswürfe, Zeit- und Aktivierungsbedingungen, Dauer und Ressourcen. Das gilt **auch für Teile, die nur durch Activities oder manuell** abgewickelt werden. Nicht bloß die automatisch über `changes` realisierten Werte auflisten. Keine anderen, unzugehörigen Fähigkeiten des Items hineinmischen.
 - Kurz und präzise in normalem **englischem D&D-2024-Regelstil**, grundsätzlich in der zweiten Person ("Your Speed increases by 20 feet.") oder einer ebenso eindeutigen Regelperspektive.
-- Ein DC, eine Bedingung oder Dauer wird **nur dann** genannt, wenn sie für die Wirkung dieses Effects notwendig und zutreffend ist; niemals als bloßes Techniketikett.
+- Ein DC, eine Bedingung, Dauer oder Aktivierungsregel wird genannt, wenn sie Bestandteil dieser Fähigkeit ist; niemals als bloßes Techniketikett.
 - **Verboten sind technische oder operative Hinweise**, insbesondere "Activate/deactivate this effect manually", "Use/Roll through the Utility Activity", "in Foundry", "Midi-QOL", "Active Effect key", "not automated", "handled manually", "transfer effect", "activity-applied", "campaign tracking convention" oder Test-Kommentare.
 - Manuelle Bedienung, bekannte Einschränkungen und QA-Hinweise gehören **ausschließlich** in Entwicklungsdokumentation, Prüfbericht oder klar gekennzeichnete Import-Metadaten, nicht in spielerseitige Beschreibungen.
 
@@ -35,11 +35,31 @@
 | Feld | Richtige Aussage |
 |---|---|
 | Item Description / Zenith | Vollständige Zenith-Regeln: Bonus Action, 1/Long Rest, 1 Minute, +20 ft. Speed, Licht, 3d8 statt 1d8, Temporary Hit Points, Opportunity Attacks. |
-| Effect: Sunlit Resolve (drei Changes) | `Your Speed increases by 10 feet. You gain a +1 bonus to AC and saving throws.` |
-| Effect: Zenith (ein Speed-Change) | `Your Speed increases by 20 feet.` |
-| Separate Damage-/Utility-Activities | Schaden, Temp HP und Schadensreduktion erhalten die zugehörigen Formeln; sie werden **nicht** in den Speed-Only-Effect-Text hineinkopiert. |
+| Effect: Sunlit Resolve (drei Changes) | Die **gesamte** Sunlit-Resolve-Fähigkeit mit Daytime, +10 ft. Speed, +1 AC/Saves **und** +1d8 Radiant auf den ersten Treffer jedes eigenen Zuges. |
+| Effect: Zenith (ein Speed-Change) | Die **gesamte** Zenith-Fähigkeit mit Bonus Action, 1/Long Rest, 1 Minute, +20 ft. Speed, Licht, 3d8 Radiant statt 1d8, Temporary HP und Opportunity Attacks. |
+| Separate Damage-/Utility-Activities | Diese implementieren nach Möglichkeit die passenden Würfe; **sie begrenzen nicht**, welche Regeln in der Effect Description beschrieben werden. |
 
-**Prüfpflicht:** Vor Auslieferung jeden Active Effect gegen seine konkreten `changes`, `statuses` und verknüpften Mechaniken abgleichen. Die automatisierte Prüfung kann verbotene Technikformulierungen erkennen; ob ein Text den **richtigen** Effekt vollständig und ausschließlich beschreibt, bleibt zusätzlich ein manueller semantischer Check.
+**Prüfpflicht:** Vor Auslieferung jede benannte Effect-Fähigkeit **inhaltlich vollständig** gegen ihren Abschnitt in der Item Description und gegen die vorhandenen `changes`, `statuses` und Activities prüfen. Die Effect Description darf mehr Regeln umfassen als die `changes` automatisieren. Die automatisierte Prüfung kann verbotene Technikformulierungen erkennen; ob ein Text die **gesamte benannte Fähigkeit** vollständig und ausschließlich beschreibt, bleibt zusätzlich ein manueller semantischer Check.
+
+### Originalgetreue Regeltexte des Ring of Sun für Active Effects
+
+**Sunlit Resolve:**
+
+During daytime, you gain the following benefits:
+• Your Speed increases by 10 feet.
+• You gain a +1 bonus to AC and saving throws.
+• The first time you hit a creature with an attack on each of your turns, the attack deals an additional 1d8 Radiant damage.
+
+**Zenith:**
+
+Once per Long Rest, while it is daytime, you can take a Bonus Action to invoke the ring's full power for 1 minute. For the duration, you gain the following benefits:
+• Your Speed increases by an additional 20 feet.
+• You emit Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.
+• The additional damage from Sunlit Resolve increases from 1d8 to 3d8 Radiant damage.
+• At the start of each of your turns, you gain Temporary Hit Points equal to twice your Proficiency Bonus.
+• When you hit a creature with an attack, that creature can't make Opportunity Attacks against you for the rest of the turn.
+
+Once Zenith ends, you can't use it again until you finish a Long Rest.
 
 ## Bestätigte Referenzen aus der gemeinsamen Ring-of-Sun-Fehlersuche
 
