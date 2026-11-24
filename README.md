@@ -92,3 +92,7 @@ Lokale Testausführung: `node --test tests/*.test.mjs` — 47/47 Mock-Tests best
 ## v0.1.5 — Journal-Link-Fix
 
 Journal-Quellen werden anhand des Dokumenttyps (inklusive Metadaten-Fallback) angeboten. World Journals können direkt ausgewählt werden. Innerhalb der ausgewählten Quelle sucht der Resolver nach einem exakten Journal-Entry-Namen oder einer exakten Page; der Entry hat vor seiner eigenen gleichnamigen Page Vorrang. Mehrdeutige oder fehlende Treffer blockieren den Import. `[[condition:Name]]` ist eine echte Link-Anforderung und wird nicht mehr still zu Klartext. `effectRefs` bleibt unabhängig davon und kopiert nur die technische Effect-Konfiguration. Ohne `effectRefs` entsteht nur der Journal-Link. Bestehende JSONs ohne Condition-Platzhalter benötigen keine Journal-Auswahl. Die alte Drenching-Slam-Testdatei funktioniert unverändert, sofern beide Quellen ausgewählt sind. Bei existierenden Items Skip beachten. 57/57 lokale Mock-Tests bestanden; echte UI und Link-Darstellung in Foundry offen.
+
+## v0.1.6 – Importfenster
+
+Der erste Importdialog hat einen eigenen vertikalen Scrollbereich (65vh), ein kleineres JSON-Textfeld und eine veränderbare Fenstergröße. Die drei Quellenfelder befinden sich unter Compendium-Referenzen. Importlogik unverändert.

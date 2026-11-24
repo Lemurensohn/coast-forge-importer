@@ -65,14 +65,15 @@ async function askSource() {
     .sort((a, b) => a.name.localeCompare(b.name));
   const options = actors.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join("");
   return DialogV2.prompt({
-    window: { title: "Coast Forge – Homebrew importieren" },
+    window: { title: "Coast Forge – Homebrew importieren", resizable: true },
+    position: { width: Math.min(660, Math.max(300, globalThis.innerWidth - 32)) },
     content: `
       <div class="coast-forge-dialog">
         <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
         <div class="form-group"><label for="coast-forge-file">Datei (.json oder .txt)</label>
           <input id="coast-forge-file" type="file" name="sourceFile" accept=".json,.txt,application/json,text/plain"></div>
         <p class="hint">Alternativ Importtext direkt einfügen:</p>
-        <textarea name="sourceText" rows="11" spellcheck="false" placeholder='{"schemaVersion":1,"items":[...]}'></textarea>
+        <textarea name="sourceText" rows="4" spellcheck="false" placeholder='{"schemaVersion":1,"items":[...]}'></textarea>
         <div class="form-group"><label for="coast-forge-target">Ziel</label>
           <select name="destination" id="coast-forge-target">
             <option value="world">Welt-Item-Verzeichnis (Ordner: Coast Forge Imports)</option>

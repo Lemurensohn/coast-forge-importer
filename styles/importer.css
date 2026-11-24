@@ -1,9 +1,10 @@
 .coast-forge-open { flex: 1 0 auto; white-space: nowrap; font-size: 0.85em; }
-.coast-forge-dialog { min-width: min(440px, 70vw); max-width: 760px; }
-.coast-forge-dialog textarea { width: 100%; min-height: 185px; font: 12px/1.5 monospace; resize: vertical; }
-.coast-forge-dialog .form-group { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+/* v0.1.6: scroll the source form independently of the DialogV2 footer. */
+.coast-forge-dialog { box-sizing: border-box; width: 100%; min-width: 0; max-width: 760px; max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 8px; overflow-wrap: anywhere; }
+.coast-forge-dialog textarea { width: 100%; box-sizing: border-box; min-height: 85px; height: 110px; max-height: 35vh; font: 12px/1.5 monospace; resize: vertical; }
+.coast-forge-dialog .form-group { display: flex; flex-direction: column; align-items: stretch; gap: 4px; margin: 8px 0; min-width: 0; }
 .coast-forge-dialog .form-group label { min-width: 100px; font-weight: 600; }
-.coast-forge-dialog .form-group select, .coast-forge-dialog .form-group input { flex: 1 1 auto; min-width: 0; }
+.coast-forge-dialog .form-group select, .coast-forge-dialog .form-group input { flex: 1 1 auto; min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; }
 .coast-forge-dialog .hint, .coast-forge-preview .hint { font-size: 0.84em; opacity: 0.78; }
 .coast-forge-preview { max-width: 780px; max-height: 60vh; overflow: auto; }
 .coast-forge-preview table { width: 100%; border-collapse: collapse; }
