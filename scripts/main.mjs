@@ -1,9 +1,10 @@
-import { PACK_SETTINGS, resolveReferences, referenceSources, readPackSelection, hasDescriptionReferences } from "./references.mjs";
+import { PACK_SETTINGS, resolveReferences, referenceSources, hasDescriptionReferences } from "./references.mjs";
 import { MODES, matchingItems, updateExisting } from "./updates.mjs";
 import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
 import { isWorldDestination, folderChoices, findWorldFolder, DEFAULT_FOLDER } from "./destinations.mjs";
 import { createIconChoices } from "./icons.mjs";
+import { renderPackPicker, bindPackPicker, selectedPacks } from "./pack-picker.mjs";
 
 const MODULE_ID = "coast-forge-importer";
 const TAG = "Coast Forge";
@@ -60,10 +61,6 @@ function packOptions(key, type) {
   const sources = referenceSources(game.packs, game.journal, type);
   return `<option value="">${sources.length ? "Nicht ausgewählt" : "Keine passende Quelle gefunden"}</option>` + sources.map(p=>`<option value="${escapeHtml(p.value)}" ${p.value===selected?'selected':''}>${escapeHtml(p.label)}</option>`).join('');
 }
-function itemPackOptions() {
-  const selected = new Set(readPackSelection(game.settings.get(MODULE_ID,'itemPack')));
-  return referenceSources(game.packs, game.journal, 'Item').map(p=>`<option value="${escapeHtml(p.value)}" ${selected.has(p.value)?'selected':''}>${escapeHtml(p.label)}</option>`).join('');
-}
 async function askSource() {
   const actors = game.actors.contents
     .filter(a => a.isOwner)
@@ -72,7 +69,7 @@ async function askSource() {
   const options = actors.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join("");
   return DialogV2.prompt({
     window: { title: "Coast Forge – Homebrew importieren", resizable: true },
-    position: { width: Math.min(660, Math.max(300, globalThis.innerWidth - 32)) },
+    position: { width: Math.min(820, Math.max(300, globalThis.innerWidth - 32)) },
     content: `
       <div class="coast-forge-dialog">
         <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
@@ -91,9 +88,10 @@ async function askSource() {
         <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
           <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
           <div class="form-group"><label>Condition Journals (Compendium / World Journal)</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
-          <div class="form-group"><label for="coast-forge-item-packs">External Grant Items / Spell Links (mehrere möglich)</label><select id="coast-forge-item-packs" name="itemPack" multiple size="5">${itemPackOptions()}</select><p class="hint">Strg + Klick: mehrere bevorzugte Compendiums auswählen oder abwählen. Ohne Treffer dort (oder ohne Auswahl) werden andere Item-Compendiums durchsucht. Mehrdeutige Treffer werden gemeldet, nicht geraten.</p></div>
+          <div class="form-group"><label>External Grant Items / Spell Links (mehrere möglich)</label>${renderPackPicker(referenceSources(game.packs, game.journal, "Item"), game.settings.get(MODULE_ID, "itemPack"))}<p class="hint">Einfach die gewünschten Compendiums anhaken. Ohne Treffer dort (oder ohne Auswahl) werden andere Item-Compendiums durchsucht. Mehrdeutige Treffer werden gemeldet, nicht geraten.</p></div>
         </details><p class="hint">Das Modul führt keine Makros aus. Nur vertrauenswürdige JSON und Compendiums verwenden.</p>
       </div>`,
+    render: (_event, dialog) => bindPackPicker(dialog.element),
     ok: {
       label: "Vorschau prüfen",
       callback: async (_event, button) => {
@@ -103,7 +101,7 @@ async function askSource() {
         const destination = form.elements.namedItem("destination")?.value ?? "world";
         const mode = form.elements.namedItem("mode")?.value ?? "skip";
         const packSelections = Object.fromEntries(Object.keys(PACK_SETTINGS).map(key=>[key,form.elements.namedItem(key)?.value ?? ""]));
-        packSelections.itemPack = JSON.stringify(Array.from(form.elements.namedItem("itemPack")?.selectedOptions ?? [], o=>o.value));
+        packSelections.itemPack = JSON.stringify(selectedPacks(form));
         return { text, destination, mode, packSelections };
       }
     },

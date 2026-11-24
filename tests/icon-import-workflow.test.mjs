@@ -103,7 +103,7 @@ test('dialog reads all preferred packs and saves settings only after confirmatio
  const saved=new Map([['itemPack','world.official']]);
  game.settings={get:(_m,k)=>saved.get(k)??'',async set(_m,k,v){saved.set(k,v);}};
  game.packs={contents:[{collection:'world.official',documentName:'Item',title:'Official'},{collection:'world.custom',documentName:'Item',title:'Custom'}]};
- state.form=async opts=>{assert.match(opts.content,/name="itemPack" multiple/);assert.match(opts.content,/value="world.official" selected/);assert.match(opts.content,/value="folder:folder1"/);const fields={sourceText:{value:fixture},destination:{value:'world'},mode:{value:'skip'},effectPack:{value:''},journalPack:{value:''},itemPack:{value:'world.official',selectedOptions:[{value:'world.official'},{value:'world.custom'}]}};return opts.ok.callback({}, {form:{elements:{namedItem:k=>fields[k]}}});};
+ state.form=async opts=>{assert.match(opts.content,/type="checkbox" name="itemPack"/);assert.match(opts.content,/value="world.official" checked/);assert.match(opts.content,/value="folder:folder1"/);const fields={sourceText:{value:fixture},destination:{value:'world'},mode:{value:'skip'},effectPack:{value:''},journalPack:{value:''},itemPack:{value:'world.official'}};return opts.ok.callback({}, {form:{elements:{namedItem:k=>fields[k]},querySelectorAll:()=>[{value:'world.official'},{value:'world.custom'}]}});};
  try {const r=await openImporter();assert.equal(r.successes.length,4);assert.deepEqual(JSON.parse(saved.get('itemPack')),['world.official','world.custom']);} finally {game.settings=original;game.packs=oldPacks;}
 });
 test('icon update stays in explicitly selected folder and preserves same-named item elsewhere',async()=>{

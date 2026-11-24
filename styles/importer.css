@@ -1,6 +1,6 @@
 .coast-forge-open { flex: 1 0 auto; white-space: nowrap; font-size: 0.85em; }
 /* v0.1.6: scroll the source form independently of the DialogV2 footer. */
-.coast-forge-dialog { box-sizing: border-box; width: 100%; min-width: 0; max-width: 760px; max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 8px; overflow-wrap: anywhere; }
+.coast-forge-dialog { box-sizing: border-box; width: 100%; min-width: 0; max-width: 820px; max-height: 72vh; overflow-y: auto; overflow-x: hidden; padding-right: 8px; overflow-wrap: anywhere; }
 .coast-forge-dialog textarea { width: 100%; box-sizing: border-box; min-height: 85px; height: 110px; max-height: 35vh; font: 12px/1.5 monospace; resize: vertical; }
 .coast-forge-dialog .form-group { display: flex; flex-direction: column; align-items: stretch; gap: 4px; margin: 8px 0; min-width: 0; }
 .coast-forge-dialog .form-group label { min-width: 100px; font-weight: 600; }
@@ -17,3 +17,18 @@
 .coast-forge-icon-buttons { display: flex; flex-direction: column; gap: 3px; align-items: stretch; }
 .coast-forge-icon-buttons button { min-height: 23px; height: auto; padding: 2px 6px; font-size: 0.82em; white-space: nowrap; line-height: 1.2; }
 .coast-forge-reset-icon:disabled { opacity: 0.5; }
+
+/* v0.1.8 — readable, searchable checkbox picker. */
+.coast-forge-pack-picker { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.coast-forge-pack-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.coast-forge-dialog .coast-forge-pack-toolbar input { flex: 1 1 180px; width: auto; }
+.coast-forge-pack-toolbar button { flex: 0 0 auto; width: auto; white-space: nowrap; }
+.coast-forge-pack-count { font-size: .9em; }
+.coast-forge-pack-list { max-height: min(360px, 42vh); overflow-y: auto; border: 1px solid var(--color-border-light-2, #888); border-radius: 5px; padding: 4px; min-width: 0; }
+.coast-forge-dialog .coast-forge-pack-row { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 8px; min-height: 36px; min-width: 0; font-weight: normal; cursor: pointer; border-radius: 3px; }
+.coast-forge-dialog .coast-forge-pack-row:hover { background: rgba(128, 128, 128, .12); }
+.coast-forge-dialog .coast-forge-pack-row:has(input:checked) { background: rgba(90, 135, 200, .19); }
+.coast-forge-dialog .coast-forge-pack-row input[type="checkbox"] { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; }
+.coast-forge-pack-row span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.coast-forge-dialog .coast-forge-pack-row[hidden], .coast-forge-pack-empty[hidden] { display: none !important; }
+.coast-forge-pack-empty { padding: 8px; }
