@@ -162,3 +162,50 @@ Bei einem neuen dnd5e-Systemupdate zuerst die Bestätigungen für Attribute Keys
 - Für verzögerten Schaden (z. B. Gaol Chains Zugbeginn): separate Damage-Activity zulässig.
 - Optionaler `--contract`-Check: vollständiger Quelltext-Abgleich auf vorgeschriebene Formulierungen, Typen, Krit-Einstellung und Summen der Bonuswürfel. **Nur Prüfmetadaten**, kein zusätzliches Foundry-Importfeld.
 - Freie natürliche Sprache wird nicht in jedem Sonderfall semantisch korrekt erkannt; komplexe Features benötigen weiterhin einen manuellen Regelabgleich. 
+
+
+## v1.7 – Native Level-Scaling für Features (Hunter's Angle)
+
+- Ein Feature mit EINER Aktivierung wird **niemals** in mehrere auswählbare Stufen-Actions zerlegt, wenn D&D5e dafür `ScaleValue` oder native Formelskalierung bietet.
+- Für Level-Schwellen 1/5/11/17: eine Bonus-Action-Activity, ein Active Effect und eine `system.advancement` vom Typ `ScaleValue` mit `configuration.type: "dice"` und den Levelwerten in `configuration.scale`.
+- Der Effekt verwendet die native Referenz `@scale.<feature-identifier>.<scale-identifier>` statt hartkodierter Tier-Würfel. Bei Hunter's Angle lautet sie `@scale.hunters-angle.extra-damage`.
+- Die Charakterlevel 1–4 = 1d4, 5–10 = 2d4, 11–16 = 3d4, 17–20 = 4d4. In der Quelle nicht enthaltene Skalierungsstufen dürfen nicht erfunden werden.
+- Der Effekt ist **kein neuer Waffenangriff**: Er wird per Bonus Action aktiviert und modifiziert den nächsten passenden Ranged Weapon Attack. Half Cover, exakte Zielbindung und Entfernung vor Turn-Ende/bei verfehltem Angriff bleiben manuell, solange nicht live automatisiert.
+- Der QA-Prüfer erkennt 4 Bonus-Actions, 4 Effekte, fehlende ScaleValue-Advancement, falsche Level-Tabelle, falsche Roll-Referenz und fehlende Verknüpfung. Nach Syntax/Parser/QA ist ein **Foundry v13 + installierte D&D5e 5.x + Midi-QOL Livetest** notwendig, bevor die Wirkung als bestätigt gilt.
+- **Nicht verwechseln**: Die Scaling-Option in der Activity-Consumption steuert den Ressourcenverbrauch bzw. die skalierbare Nutzung einer Activity; die hier benötigte Level-Progression folgt dem Scale-Value-Advancement. Die konkreten Feldnamen müssen mit der installierten D&D5e-Systemversion abgeglichen werden.
+- Achtung: In Foundry können ScaleValues auf Feature-Items versionsabhängig sein. Sollte `@scale.hunters-angle.extra-damage` nach Import nicht im Actor verfügbar sein, muss das über die Source-Item-/Class-Advancement-Verknüpfung untersucht werden, statt sofort wieder vier Buttons zu bauen.
+
+
+## v1.8 – Verbindliche Klassifizierung sämtlicher Import-Items
+
+**Kernregel:** Jedes Feature erhält vor dem Import eine **explizite** inhaltliche Kategorie (`classification`) und die passende native D&D5e-Item-Kategorisierung in `system.type`. `kind: "feature"` alleine ist nicht ausreichend. Auch bei Spells, Weapons und Ausrüstung werden die jeweiligen nativen Detailfelder geprüft. Fehlende Angaben sind **ERROR** statt stillschweigend Standardwerte zu akzeptieren. Der Importer selbst bleibt v0.1.1 und muss nicht aktualisiert werden.
+
+| Gewünschte Kategorie | `classification` | Erwartete native Felder (Foundry/D&D5e – Live-Bestätigung siehe Hinweis) |
+|---|---|---|
+| Monster Feature | `monster-feature` | `system.type.value: "monster"` |
+| Class/Subclass Feature | `class-feature` | `system.type.value: "class"` |
+| Allgemeines Feature | `general-feature` | `system.type.value: "other"` (vorläufig!) |
+| Feat (generisch) | `feat` | `system.type.value: "feat"` |
+| General Feat | `general-feat` | `system.type.value: "feat"`, `subtype: "general"` (vorläufig!) |
+| Origin Feat | `origin-feat` | `system.type.value: "feat"`, `subtype: "origin"` (vorläufig!) |
+| Fighting Style Feat | `fighting-style-feat` | `system.type.value: "feat"`, `subtype: "fighting"` (vorläufig!) |
+| **Maneuver** | **`fighting-style-feat`** | **Feat mit Fighting-Style-Subtype; nie eine neue Item-Klasse** |
+
+**Wichtig:** Die Foundry-native `system.type`-Struktur ist dokumentiert, aber mehrere exakte Enumwerte der dnd5e-5.x-Unterkategorien sind **nicht in deinem Live-System verifiziert**. Unser Prüfer warnt bei den als „vorläufig“ gekennzeichneten Mappings. Erst wenn ein manuell in Foundry erstellter Feature-Eintrag exportiert wurde, übernehmen wir seine exakten `system.type.value/subtype`-Werte als *bestätigt*. Das QA-Kit behauptet nicht, seine eigenen vermuteten Enumwerte seien ein D&D5e-Livetest.
+
+### Andere Itemtypen
+
+- **Spell/Cantrip:** `kind: "spell"` bzw. `cantrip`, natives `system.level` (0–9) und `system.school` setzen. Ein Zauber ist kein Feat; er bekommt keine Feat-`classification`.
+- **Weapon, Equipment, Consumable, Tool, Loot:** korrekter `kind` plus native Unterkategorie `system.type.value` (beispielsweise Ring/Trinket, Longsword-Typ oder Potion-Typ), nicht nur den Namen/Beschreibungstext.
+- **Class, Subclass, Container:** die native Itemklasse korrekt anlegen; keinesfalls ungeprüft eine Feat-`system.type.value` erzwingen, wo dieses Feld nicht zum Datenmodell gehört.
+
+### Zwei-Schritt-Qualitätssicherung
+
+1. Ich ordne jedes Item anhand der Benutzerbeschreibung einem eindeutigen Typ zu. Bei Zweifeln nehme ich **keine** heimliche Standardkategorie an.
+2. Bei Feats erst `classification` festlegen, dann `system.type.value/subtype` entsprechend setzen. Mit `node tools/apply-classifications.mjs INPUT.json OUTPUT.json` können die nativen Felder aus einer bereits expliziten Kategorie gesetzt werden, niemals gegen widersprüchliche vorhandene Werte.
+3. Danach `node tools/validate-import.mjs OUTPUT.json` ausführen. Nur **0 ERROR** ist statisch zulässig.
+4. In Foundry v13 mit genau deiner installierten D&D5e-Systemversion einen Live-Import prüfen (Details-Feld), bevor der Wert „bestätigt“ markiert wird.
+
+### Regressionsfälle
+
+Das QA-Kit lehnt fehlende Feature-Kategorie, fehlende native Unterkategorie, falsche Feat-/Maneuver-Zuordnung, widersprüchliche Systemfelder und Spells ohne Level/School ab. Die sieben Kategorien sind als Test-Items unter `examples/23-feature-classification-input.json` und `examples/24-feature-classification-ready.json` enthalten.
