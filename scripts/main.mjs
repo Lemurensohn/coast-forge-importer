@@ -1,7 +1,8 @@
-import { PACK_SETTINGS, resolveReferences, referenceSources } from "./references.mjs";
+import { PACK_SETTINGS, resolveReferences, referenceSources, readPackSelection, hasDescriptionReferences } from "./references.mjs";
 import { MODES, matchingItems, updateExisting } from "./updates.mjs";
 import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
+import { isWorldDestination, folderChoices, findWorldFolder, DEFAULT_FOLDER } from "./destinations.mjs";
 import { createIconChoices } from "./icons.mjs";
 
 const MODULE_ID = "coast-forge-importer";
@@ -59,10 +60,15 @@ function packOptions(key, type) {
   const sources = referenceSources(game.packs, game.journal, type);
   return `<option value="">${sources.length ? "Nicht ausgewählt" : "Keine passende Quelle gefunden"}</option>` + sources.map(p=>`<option value="${escapeHtml(p.value)}" ${p.value===selected?'selected':''}>${escapeHtml(p.label)}</option>`).join('');
 }
+function itemPackOptions() {
+  const selected = new Set(readPackSelection(game.settings.get(MODULE_ID,'itemPack')));
+  return referenceSources(game.packs, game.journal, 'Item').map(p=>`<option value="${escapeHtml(p.value)}" ${selected.has(p.value)?'selected':''}>${escapeHtml(p.label)}</option>`).join('');
+}
 async function askSource() {
   const actors = game.actors.contents
     .filter(a => a.isOwner)
     .sort((a, b) => a.name.localeCompare(b.name));
+  const folders = folderChoices(game.folders).map(f=>`<option value="${escapeHtml(f.value)}">${escapeHtml(f.label)}</option>`).join('');
   const options = actors.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join("");
   return DialogV2.prompt({
     window: { title: "Coast Forge – Homebrew importieren", resizable: true },
@@ -77,14 +83,15 @@ async function askSource() {
         <div class="form-group"><label for="coast-forge-target">Ziel</label>
           <select name="destination" id="coast-forge-target">
             <option value="world">Welt-Item-Verzeichnis (Ordner: Coast Forge Imports)</option>
-            ${options}
+            <optgroup label="Welt-Item-Ordner">${folders}</optgroup>
+            <optgroup label="Actors">${options}</optgroup>
           </select></div>
         <div class="form-group"><label>Existing Items</label><select name="mode"><option value="skip">Skip Existing (Standard)</option><option value="icons">Update Icons Only</option><option value="update">Update Existing Items (nur Welt-Items)</option></select></div>
         <p class="hint">Vollupdate ersetzt Regeln, Activities, Effects und Advancements; UUID bleibt erhalten. Keine automatische Aktualisierung von Actor-Kopien.</p>
         <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
           <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
           <div class="form-group"><label>Condition Journals (Compendium / World Journal)</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
-          <div class="form-group"><label>External Grant Items</label><select name="itemPack">${packOptions('itemPack','Item')}</select></div>
+          <div class="form-group"><label for="coast-forge-item-packs">External Grant Items / Spell Links (mehrere möglich)</label><select id="coast-forge-item-packs" name="itemPack" multiple size="5">${itemPackOptions()}</select><p class="hint">Strg + Klick: mehrere bevorzugte Compendiums auswählen oder abwählen. Ohne Treffer dort (oder ohne Auswahl) werden andere Item-Compendiums durchsucht. Mehrdeutige Treffer werden gemeldet, nicht geraten.</p></div>
         </details><p class="hint">Das Modul führt keine Makros aus. Nur vertrauenswürdige JSON und Compendiums verwenden.</p>
       </div>`,
     ok: {
@@ -96,6 +103,7 @@ async function askSource() {
         const destination = form.elements.namedItem("destination")?.value ?? "world";
         const mode = form.elements.namedItem("mode")?.value ?? "skip";
         const packSelections = Object.fromEntries(Object.keys(PACK_SETTINGS).map(key=>[key,form.elements.namedItem(key)?.value ?? ""]));
+        packSelections.itemPack = JSON.stringify(Array.from(form.elements.namedItem("itemPack")?.selectedOptions ?? [], o=>o.value));
         return { text, destination, mode, packSelections };
       }
     },
@@ -143,7 +151,7 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
   const warningList = warnings.length
     ? `<details><summary>${warnings.length} Hinweis(e)</summary><ul>${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join("")}</ul></details>`
     : "<p>Keine Formatwarnungen.</p>";
-  const targetName = destination === "world" ? "Coast Forge Imports (Welt)" : game.actors.get(destination)?.name ?? "Unbekannt";
+  const targetName = isWorldDestination(destination) ? (destination === 'world' ? `${DEFAULT_FOLDER} (Welt)` : folderChoices(game.folders).find(f=>f.value===destination)?.label ?? 'Unbekannt') : game.actors.get(destination)?.name ?? 'Unbekannt';
   const count = preview.filter(r => !r.error).length;
   let approved;
   try {
@@ -224,13 +232,13 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
   }
 }
 async function resolveTarget(destination) {
-  if (destination !== "world") {
+  if (!isWorldDestination(destination)) {
     const actor = game.actors.get(destination);
     if (!actor || !actor.isOwner) throw new Error("Ziel-Actor nicht gefunden oder keine Berechtigung.");
     return { actor, folder: null };
   }
-  let folder = game.folders.find(f => f.type === "Item" && f.name === "Coast Forge Imports" && !f.folder);
-  if (!folder) folder = await Folder.create({ name: "Coast Forge Imports", type: "Item" });
+  let folder = findWorldFolder(destination, game.folders);
+  if (!folder) folder = await Folder.create({ name: DEFAULT_FOLDER, type: "Item" });
   return { actor: null, folder };
 }
 async function performImport(preview, destination, plans = [], mode = "skip") {
@@ -294,16 +302,16 @@ export async function openImporter() {
     const parsed = parseImport(entry.text);
     const mode = entry.mode ?? "skip";
     if (!MODES.includes(mode)) throw new Error("Unknown import mode.");
-    if (mode === "update" && entry.destination !== "world") throw new Error("Full updates are limited to World Items.");
-    const hasReferences = parsed.items.some(i=>i.effectRefs !== undefined || i.compendiumGrants !== undefined || i.description?.includes("[[condition:"));
-    if (entry.destination !== "world" && parsed.items.some(i=>i.compendiumGrants?.length)) throw new Error("Compendium grants require World Items.");
+    if (mode === "update" && !isWorldDestination(entry.destination)) throw new Error("Full updates are limited to World Items.");
+    const hasReferences = parsed.items.some(i=>i.effectRefs !== undefined || i.compendiumGrants !== undefined || hasDescriptionReferences(i));
+    if (!isWorldDestination(entry.destination) && parsed.items.some(i=>i.compendiumGrants?.length)) throw new Error("Compendium grants require World Items.");
     const resolved = hasReferences ? await resolveReferences(parsed.items,entry.packSelections ?? {},game.packs,()=>foundry.utils.randomID(),game.journal) : {items:parsed.items,warnings:[]};
     const plans = planGrants(resolved.items);
-    if (plans.length && entry.destination !== "world") throw new Error("Linked advancement imports require World Items.");
+    if (plans.length && !isWorldDestination(entry.destination)) throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(resolved.items);
     parsed.warnings.push(...resolved.warnings);
-    const folder = entry.destination === "world" ? game.folders.find(f=>f.type==="Item" && f.name==="Coast Forge Imports" && !f.folder) : null;
-    const collection = entry.destination === "world" ? (folder ? game.items.contents.filter(i=>i.folder?.id===folder.id) : []) : game.actors.get(entry.destination)?.items.contents ?? [];
+    const folder = isWorldDestination(entry.destination) ? findWorldFolder(entry.destination,game.folders) : null;
+    const collection = isWorldDestination(entry.destination) ? (folder ? game.items.contents.filter(i=>i.folder?.id===folder.id) : []) : game.actors.get(entry.destination)?.items.contents ?? [];
     const seen = new Set();
     for (const row of preview) if (row.data) {
       const matches = matchingItems(collection,row.data);

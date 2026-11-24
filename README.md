@@ -56,9 +56,9 @@ Im ersten Importdialog unter **Compendium-Referenzen** drei optionale Quellen au
 
 - **Condition Effects (Items)**: dein Item-Compendium mit je einem Feature, das den tatsächlichen eingebetteten Active Effect enthält.
 - **Condition Journals**: dein JournalEntry-Compendium oder ein einzelnes World Journal mit gleichnamigen Journal Entries bzw. Pages. Explizite Condition-Referenzen benötigen diese Auswahl; kein Klartext-Fallback.
-- **External Grant Items**: optionales Item-Compendium für schon existierende Features, Spells usw., die per ItemGrant gewährt werden sollen.
+- **External Grant Items**: mehrere bevorzugte Item-Compendiums für schon existierende Features, Spells usw. (seit v0.1.7 auch Beschreibungslinks).
 
-Auswahl wird pro Welt nach Bestätigung der Vorschau gespeichert. Exakte Namensübereinstimmung, keine zufälligen Treffer und keine Suche in anderen Packs. Wenn ein ausgewählter Pack keinen eindeutigen Treffer enthält, Import vor den Item-Schreibvorgängen abbrechen. Bei mehreren Active Effects im Feature `effectName` angeben. Die Quellen werden nicht geändert.
+Auswahl wird pro Welt nach Bestätigung der Vorschau gespeichert. Für Condition Effects und Condition Journals gilt weiterhin die explizit ausgewählte Quelle. Externe Item-Referenzen verwenden seit v0.1.7 bevorzugte Packs und bei keinem Treffer eine Suche in den übrigen Item-Packs. Fehlende oder mehrdeutige Treffer brechen den Import vor den Item-Schreibvorgängen ab. Bei mehreren Active Effects im Feature `effectName` angeben. Die Quellen werden nicht geändert.
 
 ### Importformat (weiterhin schemaVersion 1)
 
@@ -78,7 +78,7 @@ Externe ItemGrant-Referenzen: `compendiumGrants: [{"advancementId":"GoldenLedger
 
 - **Skip Existing** (Standard): bisheriges Verhalten. Existierende Items werden nicht für neue Icons überschrieben; lokale Grants können wie bisher auf passende bestehende Items verweisen.
 - **Update Icons Only**: vorhandenes Icon als Startbild; nur eine neue, nicht zurückgesetzte Auswahl wird gespeichert. Neue Items werden wie gewohnt erstellt. Bei bereits bestehenden Parents werden Grant-Verknüpfungen nur geprüft, nicht geändert.
-- **Update Existing Items**: nur World Items im Ordner Coast Forge Imports. Die komplette JSON ersetzt die nativen Systemdaten und eingebetteten Effects (einschließlich eventuell manuell hinzugefügter); Item-UUID, Ordner, Berechtigungen, andere Flag-Scopes und bestehendes Icon bleiben soweit vorgesehen erhalten. Activities/Effects können neue IDs erhalten. Bei verknüpften Batches müssen vorhandene lokale Refs übereinstimmen. Alte Actor-Kopien und deren Ressourcen bleiben unverändert. Vollupdate ist keine Transaktion; bei Fehler können Teilschritte gespeichert bleiben. Welt sichern und zuerst in Testwelt prüfen.
+- **Update Existing Items**: nur World Items im ausgewählten Zielordner (Standard: Coast Forge Imports). Die komplette JSON ersetzt die nativen Systemdaten und eingebetteten Effects (einschließlich eventuell manuell hinzugefügter); Item-UUID, Ordner, Berechtigungen, andere Flag-Scopes und bestehendes Icon bleiben soweit vorgesehen erhalten. Activities/Effects können neue IDs erhalten. Bei verknüpften Batches müssen vorhandene lokale Refs übereinstimmen. Alte Actor-Kopien und deren Ressourcen bleiben unverändert. Vollupdate ist keine Transaktion; bei Fehler können Teilschritte gespeichert bleiben. Welt sichern und zuerst in Testwelt prüfen.
 
 ### Live-Test v0.1.4
 
@@ -96,3 +96,14 @@ Journal-Quellen werden anhand des Dokumenttyps (inklusive Metadaten-Fallback) an
 ## v0.1.6 – Importfenster
 
 Der erste Importdialog hat einen eigenen vertikalen Scrollbereich (65vh), ein kleineres JSON-Textfeld und eine veränderbare Fenstergröße. Die drei Quellenfelder befinden sich unter Compendium-Referenzen. Importlogik unverändert.
+
+## v0.1.7 — Zielordner, mehrere externe Quellen und Beschreibungslinks
+
+- Ziel: bestehende Item-Ordner und Unterordner (nach vollständigem Pfad), Standardordner oder Actor. Die Duplikatprüfung und Updates gelten ausschließlich im gewählten Ziel. Kein automatisches Verschieben bereits vorhandener Dokumente. Verknüpfte Advancements und Vollupdates weiterhin nur World Items.
+- External Grant Items / Spell Links: Strg+Klick für mehrere bevorzugte Packs. Die Auswahl wird als JSON-Array im bisherigen String-Setting gespeichert; alte einzelne Pack-ID bleibt lesbar. Keine Auswahl erforderlich, wenn die JSON keine externen Referenzen enthält.
+- Suche: alle bevorzugten Packs als gemeinsame Prioritätsstufe. Wenn dort kein Treffer gefunden wird, andere Item-Packs durchsuchen. Name exakt (gerades/typografisches Apostroph gleichwertig); bei `type` zusätzlich nativen Item-Typ prüfen. `pack` pro Grant-Referenz beschränkt Suche strikt auf diesen Pack. Bei mehreren passenden UUIDs Fehlermeldung mit Quellen; einzelne bevorzugte Quelle oder expliziten Pack wählen. Keine automatische 2014/2024-Auswahl und kein interaktiver Konflikt-Dialog in dieser Version. Index und geladene Dokumente pro Import cachen.
+- `[[spell:Counterspell]]`, `[[feature:Innate Sorcery]]` und `[[item:Item Name]]` in Item-Descriptions bzw. explizit in Effect-Descriptions werden zu `@UUID[...]`-Links für vorhandene Compendium-Dokumente. Optional `[[spell:Counterspell|world.spells]]` für eine feste Quelle. Wenn ein gleichnamiger passender Spell/Item im Batch bereits als externer Grant aufgelöst wurde, denselben UUID-Link verwenden. Mehrere passende Grant-UUIDs ohne explizite Quelle sind Fehler. Keine automatische Verlinkung unmarkierter Wörter. Neue lokale Items innerhalb desselben Batches werden weiterhin per `grantLinks` verknüpft; freie Description-Links auf diese neuen lokalen Items sind nicht Teil dieses Releases.
+- Bei Spell Grants `{"name":"Counterspell","type":"spell","optional":false}` nutzen; optional `pack`. Der bisherige `compendiumGrants`-Aufbau bleibt kompatibel.
+- Neue Subclass-JSONs: jedes Feature beginnt mit `Level N: Feature Name`, enthält `system.requirements` mit Klasse/Level und `system.prerequisites.level`. Grant-Advancement-Level muss übereinstimmen. Das Required-Level-Feld ist eine generische Voraussetzung, keine eigene Klassenlevel-Automation. Anzeige im Details-Reiter separat prüfen.
+- Testfixture `examples/35-creators-sorcery-v2-TEST.json`: 8 Items, 7 lokale Feature Grants, 14 externe Spell Grants, getrennte Level; Beschreibungslinks und Feature-Level ergänzt. Die bisherigen Regeln/Activities/Effects bleiben bis auf Links in Texten unverändert.
+- Lokale Node-Mock-Tests: 75/75, 57 bisherige plus 18 zusätzliche. Foundry-Livetests (Mehrfachauswahl, tatsächliche Link-Darstellung und Level-Feld, verknüpfte Updates) offen. Die historische 92er-Suite ist nicht verfügbar.

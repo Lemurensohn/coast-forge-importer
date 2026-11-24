@@ -1,0 +1,802 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Creator’s Sorcery",
+      "kind": "subclass",
+      "ref": "creators-sorcery",
+      "automation": "partial",
+      "description": "Bear the Design of an Extraordinary Creator\n\nYour innate magic does not come from bloodline, chance, or ancestral inheritance. Someone made you this way.\n\nYour existence was shaped by a creator whose mastery surpassed conventional magic: an archmage, divine artisan, Emanator, artificer, scientist, godwright, or other being capable of altering life itself. You might be an artificial life-form deliberately constructed from nothing, a mortal whose body and soul were extensively modified, the successful result of an impossible experiment, or a creation designed to embody a theory your maker wished to prove.\n\nWhatever your origin, traces of your creator remain within you. Their methods are written into your magic. Their understanding influences the way you perceive the world. When your innate power rises to the surface, even their presence can briefly manifest through you.\n\nSome creators intended their works to become successors. Others created servants, experiments, weapons, children, proofs of concept, or simply something that had never existed before.\n\nWhether you remain what your creator intended is entirely your choice.\n\nLevel 3: Creator’s Insight\n\nYour creator did not merely give you power. Some fragment of their understanding was built into you.\n\nWhen you make an Intelligence check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1).\n\nYou also gain proficiency in one of the following skills of your choice: Arcana, History, Investigation, Nature, or Religion.\n\nThis knowledge might manifest as implanted memories, instinctive comprehension, encoded information, artificial intuition, or simply the ability to approach problems using methods inherited from your creator.\n\nLevel 3: Imprinted Spells\n\nYour creator’s methods remain embedded within your magic. When you reach the Sorcerer level specified in the Imprinted Spells table, you thereafter always have the listed spells prepared.\n\nImprinted Spells\nSorcerer Level 3: [[spell:Command]], [[spell:Guidance]], [[spell:Locate Object]], [[spell:Protection from Evil and Good]], [[spell:Resistance]], [[spell:Spiritual Weapon]]\nSorcerer Level 5: [[spell:Magic Circle]], [[spell:Spirit Guardians]]\nSorcerer Level 7: [[spell:Divination]], [[spell:Locate Creature]]\nSorcerer Level 9: [[spell:Legend Lore]], [[spell:Yolande’s Regal Presence]]\n\nThese spells need not resemble conventional spellcasting. Depending on your creator, they might appear as arcane formulas, reconstructed phenomena, commands imposed upon reality, divine authority, impossible technology, or manifestations of an artificial soul.\n\nLevel 3: Manifestation of the Creator\n\nChoose the form in which your creator’s influence manifests. It might resemble your creator directly, an idealized version of them, a symbolic creature, an arcane diagram, a mechanical halo, a constellation of formulae, or some other representation of the intelligence responsible for your existence.\n\nWhile your Innate Sorcery feature is active, this manifestation appears in a spectral haze around you, and you have Advantage on any ability check you make as part of the Influence action.\n\nFor some Creator Sorcerers, the manifestation speaks, observes, or appears to react independently. Whether this is truly a fragment of the creator, an inherited memory, or merely the sorcerer’s own magic interpreting its origin is not always clear.\n\nLevel 6: Superior Spell Disruption\n\nYour magic carries the understanding of someone who knew how spells were constructed—and therefore how they could be dismantled.\n\nYou always have [[spell:Counterspell]] and [[spell:Dispel Magic]] prepared.\n\nWhile your Innate Sorcery feature is active, you can cast each spell without expending a spell slot. If you cast [[spell:Counterspell]] in this way, the target has Disadvantage on its Constitution saving throw. If you cast [[spell:Dispel Magic]] in this way, you have Advantage on your ability checks to end ongoing spells.\n\nOnce you cast either spell without a spell slot, you must finish a Long Rest before you can cast that spell in this way again.\n\nTo you, disrupting magic may not feel like overpowering another spellcaster. You simply recognize where their work is unstable.\n\nAnd remove the necessary piece.\n\nLevel 14: Creator’s Majesty\n\nWhen your innate power fully manifests, something of your creator’s presence becomes impossible to ignore.\n\nWhile your Innate Sorcery feature is active, you are surrounded by a magical aura in a 5-foot Emanation. Whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Charisma saving throw.\n\nOn a failed save, the target has the &Reference[prone] condition or the &Reference[frightened] condition until the end of your next turn (your choice).\n\nA creature makes this save only once per turn.\n\nThe effect might resemble overwhelming supernatural authority, the pressure of an impossible intellect, an artificial distortion of reality, or simply the instinctive realization that whatever created you existed far beyond ordinary mortal limitations.\n\nLevel 14: Stabilized Spellcaster\n\nYour creator built your magic upon foundations that ordinary disruption cannot easily disturb.\n\nTaking damage can’t break your Concentration on Sorcerer spells.\n\nWhether this resilience comes from altered biology, artificial nerves, reinforced magical pathways, an engineered soul, or sheer perfection of design depends upon the nature of your creation.\n\nLevel 18: Creator’s Ward\n\nThe safeguards placed within your existence fully awaken.\n\nWhile your Innate Sorcery feature is active, you gain Advantage on saving throws against spells.\n\nOnce during your use of Innate Sorcery, when you fail a saving throw against a spell, you can choose to succeed instead.\n\nThis protection might be a defensive system deliberately installed by your creator, an autonomous correction within your magical structure, or simply the consequence of being designed by someone who considered hostile magic an obvious flaw that needed accounting for.\n\nCreator’s Sorcery and Madame Aserys\n\nFor a creation of Madame Aserys, this Sorcerous Origin represents something far more deliberate than inherited magic.\n\nMadame Aserys did not merely place magic inside her creation. She authored the structure through which that creation interacts with reality.\n\nCreator’s Insight represents knowledge and methodology embedded into the creation itself. The Imprinted Spells are expressions of principles Madame considered useful enough to incorporate into the design. Manifestation of the Creator may cause her likeness, silhouette, equations, or even fragments of her mannerisms to appear around the Sorcerer while Innate Sorcery is active.\n\nSuperior Spell Disruption reflects one of the most frightening aspects of being created by someone like Madame Aserys: hostile magic is not necessarily something the creation must overpower. It can simply recognize the construction of the spell and identify where it should be broken.\n\nCreator’s Majesty is the point where the distinction between creation and creator briefly becomes difficult to perceive. Those standing nearby do not merely feel the Sorcerer’s presence. For an instant, they feel the shadow of the intelligence responsible for making them.\n\nAnd Creator’s Ward represents perhaps the simplest truth of all:\n\nUr Creator does not create something extraordinary and then neglect to protect her investment.",
+      "system": {
+        "identifier": "creators-sorcery",
+        "classIdentifier": "sorcerer",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "advancement": [
+          {
+            "_id": "CrFeat3000000000",
+            "type": "ItemGrant",
+            "level": 3,
+            "title": "Level 3: Creator’s Sorcery Features",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSkill300000000",
+            "type": "Trait",
+            "level": 3,
+            "title": "Creator’s Insight — Skill Proficiency",
+            "configuration": {
+              "allowReplacements": false,
+              "choices": [
+                {
+                  "count": 1,
+                  "pool": [
+                    "skills:arc",
+                    "skills:his",
+                    "skills:inv",
+                    "skills:nat",
+                    "skills:rel"
+                  ]
+                }
+              ],
+              "grants": [],
+              "mode": "default"
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSpell300000000",
+            "type": "ItemGrant",
+            "level": 3,
+            "title": "Imprinted Spells — Level 3",
+            "configuration": {
+              "items": [],
+              "optional": false,
+              "spell": {
+                "ability": [
+                  "cha"
+                ],
+                "method": "spell",
+                "prepared": 2,
+                "uses": {
+                  "max": "",
+                  "per": "",
+                  "requireSlot": false
+                }
+              }
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSpell500000000",
+            "type": "ItemGrant",
+            "level": 5,
+            "title": "Imprinted Spells — Level 5",
+            "configuration": {
+              "items": [],
+              "optional": false,
+              "spell": {
+                "ability": [
+                  "cha"
+                ],
+                "method": "spell",
+                "prepared": 2,
+                "uses": {
+                  "max": "",
+                  "per": "",
+                  "requireSlot": false
+                }
+              }
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrFeat6000000000",
+            "type": "ItemGrant",
+            "level": 6,
+            "title": "Level 6: Creator’s Sorcery Features",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSpell600000000",
+            "type": "ItemGrant",
+            "level": 6,
+            "title": "Superior Spell Disruption — Spells",
+            "configuration": {
+              "items": [],
+              "optional": false,
+              "spell": {
+                "ability": [
+                  "cha"
+                ],
+                "method": "spell",
+                "prepared": 2,
+                "uses": {
+                  "max": "1",
+                  "per": "lr",
+                  "requireSlot": false
+                }
+              }
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSpell700000000",
+            "type": "ItemGrant",
+            "level": 7,
+            "title": "Imprinted Spells — Level 7",
+            "configuration": {
+              "items": [],
+              "optional": false,
+              "spell": {
+                "ability": [
+                  "cha"
+                ],
+                "method": "spell",
+                "prepared": 2,
+                "uses": {
+                  "max": "",
+                  "per": "",
+                  "requireSlot": false
+                }
+              }
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrSpell900000000",
+            "type": "ItemGrant",
+            "level": 9,
+            "title": "Imprinted Spells — Level 9",
+            "configuration": {
+              "items": [],
+              "optional": false,
+              "spell": {
+                "ability": [
+                  "cha"
+                ],
+                "method": "spell",
+                "prepared": 2,
+                "uses": {
+                  "max": "",
+                  "per": "",
+                  "requireSlot": false
+                }
+              }
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrFeat1400000000",
+            "type": "ItemGrant",
+            "level": 14,
+            "title": "Level 14: Creator’s Sorcery Features",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          },
+          {
+            "_id": "CrFeat1800000000",
+            "type": "ItemGrant",
+            "level": 18,
+            "title": "Level 18: Creator’s Sorcery Features",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          }
+        ]
+      },
+      "grantLinks": [
+        {
+          "advancementId": "CrFeat3000000000",
+          "refs": [
+            "creators-insight",
+            "imprinted-spells",
+            "manifestation-of-the-creator"
+          ]
+        },
+        {
+          "advancementId": "CrFeat6000000000",
+          "refs": [
+            "superior-spell-disruption"
+          ]
+        },
+        {
+          "advancementId": "CrFeat1400000000",
+          "refs": [
+            "creators-majesty",
+            "stabilized-spellcaster"
+          ]
+        },
+        {
+          "advancementId": "CrFeat1800000000",
+          "refs": [
+            "creators-ward"
+          ]
+        }
+      ],
+      "compendiumGrants": [
+        {
+          "advancementId": "CrSpell300000000",
+          "items": [
+            {
+              "name": "Command",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Guidance",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Locate Object",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Protection from Evil and Good",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Resistance",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Spiritual Weapon",
+              "optional": false,
+              "type": "spell"
+            }
+          ]
+        },
+        {
+          "advancementId": "CrSpell500000000",
+          "items": [
+            {
+              "name": "Magic Circle",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Spirit Guardians",
+              "optional": false,
+              "type": "spell"
+            }
+          ]
+        },
+        {
+          "advancementId": "CrSpell700000000",
+          "items": [
+            {
+              "name": "Divination",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Locate Creature",
+              "optional": false,
+              "type": "spell"
+            }
+          ]
+        },
+        {
+          "advancementId": "CrSpell900000000",
+          "items": [
+            {
+              "name": "Legend Lore",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Yolande's Regal Presence",
+              "optional": false,
+              "type": "spell"
+            }
+          ]
+        },
+        {
+          "advancementId": "CrSpell600000000",
+          "items": [
+            {
+              "name": "Counterspell",
+              "optional": false,
+              "type": "spell"
+            },
+            {
+              "name": "Dispel Magic",
+              "optional": false,
+              "type": "spell"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Creator’s Insight",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "creators-insight",
+      "automation": "partial",
+      "description": "Level 3: Creator’s Insight\n\nYour creator did not merely give you power. Some fragment of their understanding was built into you.\n\nWhen you make an Intelligence check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1).\n\nYou also gain proficiency in one of the following skills of your choice: Arcana, History, Investigation, Nature, or Religion.\n\nThis knowledge might manifest as implanted memories, instinctive comprehension, encoded information, artificial intuition, or simply the ability to approach problems using methods inherited from your creator.",
+      "system": {
+        "identifier": "creators-insight",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 3",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 3
+        }
+      },
+      "activities": [],
+      "effects": [
+        {
+          "name": "Creator’s Insight",
+          "description": "<p>Your creator did not merely give you power. Some fragment of their understanding was built into you.</p><p>When you make an Intelligence check, you gain a bonus to the check equal to your Charisma modifier (minimum of +1).</p><p>You also gain proficiency in one of the following skills of your choice: Arcana, History, Investigation, Nature, or Religion.</p><p>This knowledge might manifest as implanted memories, instinctive comprehension, encoded information, artificial intuition, or simply the ability to approach problems using methods inherited from your creator.</p>",
+          "transfer": true,
+          "disabled": false,
+          "changes": [
+            {
+              "key": "system.abilities.int.bonuses.check",
+              "mode": 2,
+              "value": "max(1, @abilities.cha.mod)",
+              "priority": 20
+            }
+          ],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "img": "icons/svg/book.svg"
+        }
+      ]
+    },
+    {
+      "name": "Imprinted Spells",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "imprinted-spells",
+      "automation": "partial",
+      "description": "Level 3: Imprinted Spells\n\nYour creator’s methods remain embedded within your magic. When you reach the Sorcerer level specified in the Imprinted Spells table, you thereafter always have the listed spells prepared.\n\nImprinted Spells\nSorcerer Level 3: [[spell:Command]], [[spell:Guidance]], [[spell:Locate Object]], [[spell:Protection from Evil and Good]], [[spell:Resistance]], [[spell:Spiritual Weapon]]\nSorcerer Level 5: [[spell:Magic Circle]], [[spell:Spirit Guardians]]\nSorcerer Level 7: [[spell:Divination]], [[spell:Locate Creature]]\nSorcerer Level 9: [[spell:Legend Lore]], [[spell:Yolande’s Regal Presence]]\n\nThese spells need not resemble conventional spellcasting. Depending on your creator, they might appear as arcane formulas, reconstructed phenomena, commands imposed upon reality, divine authority, impossible technology, or manifestations of an artificial soul.",
+      "system": {
+        "identifier": "imprinted-spells",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 3",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 3
+        }
+      },
+      "activities": [],
+      "effects": []
+    },
+    {
+      "name": "Manifestation of the Creator",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "manifestation-of-the-creator",
+      "automation": "partial",
+      "description": "Level 3: Manifestation of the Creator\n\nChoose the form in which your creator’s influence manifests. It might resemble your creator directly, an idealized version of them, a symbolic creature, an arcane diagram, a mechanical halo, a constellation of formulae, or some other representation of the intelligence responsible for your existence.\n\nWhile your Innate Sorcery feature is active, this manifestation appears in a spectral haze around you, and you have Advantage on any ability check you make as part of the Influence action.\n\nFor some Creator Sorcerers, the manifestation speaks, observes, or appears to react independently. Whether this is truly a fragment of the creator, an inherited memory, or merely the sorcerer’s own magic interpreting its origin is not always clear.",
+      "system": {
+        "identifier": "manifestation-of-the-creator",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 3",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 3
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Manifest Creator — Marker",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Use only while Innate Sorcery is active. Advantage applies only to checks made as part of the Influence action; select Advantage manually. Remove this marker when Innate Sorcery ends."
+          },
+          "effects": [
+            {
+              "_id": "CrManifest000000",
+              "onSave": false
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "name": "Manifestation of the Creator",
+          "description": "<p>Choose the form in which your creator’s influence manifests. It might resemble your creator directly, an idealized version of them, a symbolic creature, an arcane diagram, a mechanical halo, a constellation of formulae, or some other representation of the intelligence responsible for your existence.</p><p>While your Innate Sorcery feature is active, this manifestation appears in a spectral haze around you, and you have Advantage on any ability check you make as part of the Influence action.</p><p>For some Creator Sorcerers, the manifestation speaks, observes, or appears to react independently. Whether this is truly a fragment of the creator, an inherited memory, or merely the sorcerer’s own magic interpreting its origin is not always clear.</p>",
+          "transfer": false,
+          "disabled": false,
+          "changes": [],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "_id": "CrManifest000000",
+          "img": "icons/svg/aura.svg"
+        }
+      ]
+    },
+    {
+      "name": "Superior Spell Disruption",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "superior-spell-disruption",
+      "automation": "partial",
+      "description": "Level 6: Superior Spell Disruption\n\nYour magic carries the understanding of someone who knew how spells were constructed—and therefore how they could be dismantled.\n\nYou always have [[spell:Counterspell]] and [[spell:Dispel Magic]] prepared.\n\nWhile your Innate Sorcery feature is active, you can cast each spell without expending a spell slot. If you cast [[spell:Counterspell]] in this way, the target has Disadvantage on its Constitution saving throw. If you cast [[spell:Dispel Magic]] in this way, you have Advantage on your ability checks to end ongoing spells.\n\nOnce you cast either spell without a spell slot, you must finish a Long Rest before you can cast that spell in this way again.\n\nTo you, disrupting magic may not feel like overpowering another spellcaster. You simply recognize where their work is unstable.\n\nAnd remove the necessary piece.",
+      "system": {
+        "identifier": "superior-spell-disruption",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 6",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 6
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Superior Spell Disruption — Reminder",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "While Innate Sorcery is active, use the free-casting activity on the granted Counterspell or Dispel Magic. Each has its own 1/Long Rest use. Impose Disadvantage on the target’s Constitution save for free Counterspell; select Advantage on your ability checks to end spells for free Dispel Magic. Normal slot casting is unaffected."
+          }
+        }
+      ],
+      "effects": []
+    },
+    {
+      "name": "Creator’s Majesty",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "creators-majesty",
+      "automation": "partial",
+      "description": "Level 14: Creator’s Majesty\n\nWhen your innate power fully manifests, something of your creator’s presence becomes impossible to ignore.\n\nWhile your Innate Sorcery feature is active, you are surrounded by a magical aura in a 5-foot Emanation. Whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Charisma saving throw.\n\nOn a failed save, the target has the &Reference[prone] condition or the &Reference[frightened] condition until the end of your next turn (your choice).\n\nA creature makes this save only once per turn.\n\nThe effect might resemble overwhelming supernatural authority, the pressure of an impossible intellect, an artificial distortion of reality, or simply the instinctive realization that whatever created you existed far beyond ordinary mortal limitations.",
+      "system": {
+        "identifier": "creators-majesty",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 14",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 14
+        }
+      },
+      "activities": [
+        {
+          "type": "save",
+          "name": "Creator’s Majesty — Prone",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "5",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "creature",
+              "count": "1",
+              "choice": false
+            },
+            "override": true
+          },
+          "save": {
+            "ability": [
+              "cha"
+            ],
+            "dc": {
+              "calculation": "",
+              "formula": "8 + @prof + @abilities.cha.mod"
+            }
+          },
+          "damage": {
+            "onSave": "none",
+            "parts": []
+          },
+          "effects": [
+            {
+              "_id": "CrMajProne000000",
+              "onSave": false
+            }
+          ],
+          "description": {
+            "chatFlavor": "While Innate Sorcery is active, choose one visible creature entering or ending its turn in your 5-foot Emanation. No action required; the creature saves only once per turn. On a failure apply Prone until the end of your next turn. Track the trigger and expiration manually. Use only one of the two condition options for this save; if deciding after the roll, adjust the applied condition manually."
+          }
+        },
+        {
+          "type": "save",
+          "name": "Creator’s Majesty — Frightened",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "value": "5",
+            "units": "ft",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "creature",
+              "count": "1",
+              "choice": false
+            },
+            "override": true
+          },
+          "save": {
+            "ability": [
+              "cha"
+            ],
+            "dc": {
+              "calculation": "",
+              "formula": "8 + @prof + @abilities.cha.mod"
+            }
+          },
+          "damage": {
+            "onSave": "none",
+            "parts": []
+          },
+          "effects": [
+            {
+              "_id": "CrMajFrightened0",
+              "onSave": false
+            }
+          ],
+          "description": {
+            "chatFlavor": "While Innate Sorcery is active, choose one visible creature entering or ending its turn in your 5-foot Emanation. No action required; the creature saves only once per turn. On a failure apply Frightened until the end of your next turn. Track the trigger and expiration manually. Use only one of the two condition options for this save; if deciding after the roll, adjust the applied condition manually."
+          }
+        }
+      ],
+      "effects": [
+        {
+          "name": "Creator’s Majesty — Prone",
+          "description": "<p>When your innate power fully manifests, something of your creator’s presence becomes impossible to ignore.</p><p>While your Innate Sorcery feature is active, you are surrounded by a magical aura in a 5-foot Emanation. Whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Charisma saving throw.</p><p>On a failed save, the target has the &amp;Reference[prone] condition or the &amp;Reference[frightened] condition until the end of your next turn (your choice).</p><p>A creature makes this save only once per turn.</p><p>The effect might resemble overwhelming supernatural authority, the pressure of an impossible intellect, an artificial distortion of reality, or simply the instinctive realization that whatever created you existed far beyond ordinary mortal limitations.</p>",
+          "transfer": false,
+          "disabled": false,
+          "changes": [],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "_id": "CrMajProne000000",
+          "img": "icons/svg/falling.svg",
+          "statuses": [
+            "prone"
+          ]
+        },
+        {
+          "name": "Creator’s Majesty — Frightened",
+          "description": "<p>When your innate power fully manifests, something of your creator’s presence becomes impossible to ignore.</p><p>While your Innate Sorcery feature is active, you are surrounded by a magical aura in a 5-foot Emanation. Whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Charisma saving throw.</p><p>On a failed save, the target has the &amp;Reference[prone] condition or the &amp;Reference[frightened] condition until the end of your next turn (your choice).</p><p>A creature makes this save only once per turn.</p><p>The effect might resemble overwhelming supernatural authority, the pressure of an impossible intellect, an artificial distortion of reality, or simply the instinctive realization that whatever created you existed far beyond ordinary mortal limitations.</p>",
+          "transfer": false,
+          "disabled": false,
+          "changes": [],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "_id": "CrMajFrightened0",
+          "img": "icons/svg/terror.svg",
+          "statuses": [
+            "frightened"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Stabilized Spellcaster",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "stabilized-spellcaster",
+      "automation": "manual",
+      "description": "Level 14: Stabilized Spellcaster\n\nYour creator built your magic upon foundations that ordinary disruption cannot easily disturb.\n\nTaking damage can’t break your Concentration on Sorcerer spells.\n\nWhether this resilience comes from altered biology, artificial nerves, reinforced magical pathways, an engineered soul, or sheer perfection of design depends upon the nature of your creation.",
+      "system": {
+        "identifier": "stabilized-spellcaster",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 14",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 14
+        }
+      },
+      "activities": [],
+      "effects": []
+    },
+    {
+      "name": "Creator’s Ward",
+      "kind": "feature",
+      "classification": "class-feature",
+      "ref": "creators-ward",
+      "automation": "partial",
+      "description": "Level 18: Creator’s Ward\n\nThe safeguards placed within your existence fully awaken.\n\nWhile your Innate Sorcery feature is active, you gain Advantage on saving throws against spells.\n\nOnce during your use of Innate Sorcery, when you fail a saving throw against a spell, you can choose to succeed instead.\n\nThis protection might be a defensive system deliberately installed by your creator, an autonomous correction within your magical structure, or simply the consequence of being designed by someone who considered hostile magic an obvious flaw that needed accounting for.",
+      "system": {
+        "identifier": "creators-ward",
+        "type": {
+          "value": "class",
+          "subtype": ""
+        },
+        "requirements": "Creator’s Sorcery, Sorcerer Level 18",
+        "source": {
+          "custom": "Coast of the Gods",
+          "rules": "2024"
+        },
+        "prerequisites": {
+          "level": 18
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Creator’s Ward — Marker",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Use when Innate Sorcery begins; remove when it ends. Select Advantage on saving throws against spells only, not other magical effects. Track the once-per-use success separately."
+          },
+          "effects": [
+            {
+              "_id": "CrWardMarker0000",
+              "onSave": false
+            }
+          ]
+        },
+        {
+          "type": "utility",
+          "name": "Creator’s Ward — Choose to Succeed",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "After failing a saving throw against a spell while Innate Sorcery is active, choose to succeed instead. Use once during this activation of Innate Sorcery. Adjust the save outcome manually; reset only when a new use of Innate Sorcery begins."
+          }
+        }
+      ],
+      "effects": [
+        {
+          "name": "Creator’s Ward",
+          "description": "<p>The safeguards placed within your existence fully awaken.</p><p>While your Innate Sorcery feature is active, you gain Advantage on saving throws against spells.</p><p>Once during your use of Innate Sorcery, when you fail a saving throw against a spell, you can choose to succeed instead.</p><p>This protection might be a defensive system deliberately installed by your creator, an autonomous correction within your magical structure, or simply the consequence of being designed by someone who considered hostile magic an obvious flaw that needed accounting for.</p>",
+          "transfer": false,
+          "disabled": false,
+          "changes": [],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "_id": "CrWardMarker0000",
+          "img": "icons/svg/shield.svg"
+        }
+      ]
+    }
+  ]
+}

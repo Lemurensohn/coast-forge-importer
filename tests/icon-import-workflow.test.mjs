@@ -15,7 +15,7 @@ const makeRows=()=>Array.from({length:4},(_,index)=>{
   return {dataset:{coastForgeRow:String(index)},querySelector:s=>elements[s],elements};
 });
 globalThis.foundry={applications:{api:{DialogV2:{
-  async prompt(opts){ return opts.ok.label==='Vorschau prüfen'?{text:fixture,destination:state.destination,mode:state.mode}:true; },
+  async prompt(opts){ if(opts.ok.label!=='Vorschau prüfen') return true; if(state.form) return state.form(opts); return {text:fixture,destination:state.destination,mode:state.mode}; },
   async confirm(opts){
     assert.match(opts.content,/Cinder Snap/);
     assert.match(opts.content,/Grave Pinch/);
@@ -89,4 +89,26 @@ test('icon-only mode updates matched document and leaves new items importable',a
 test('icon-only mode without selection keeps current icon',async()=>{
   setup(async()=>{});state.mode='icons';const doc={id:'existing1',name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'old.png',async update(){throw Error('unexpected update');}};game.items.contents=[doc];
   const result=await openImporter();assert.deepEqual(result.skipped,['Cinder Snap']);assert.equal(doc.img,'old.png');
+});
+
+test('custom world folder is used for creations and duplicate checks',async()=>{
+ setup(async rows=>choose(rows[0],'custom.png'),true,'folder:folder2');
+ game.folders.push({id:'folder2',name:'Subclasses',type:'Item'});
+ game.items.contents=[{name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'old.png'},{name:'Grave Pinch',type:'spell',folder:{id:'folder2'},img:'there.png'}];
+ try {const result=await openImporter();assert.deepEqual(result.skipped,['Grave Pinch']);assert.equal(state.created.length,3);assert.ok(state.created.every(x=>x.folder==='folder2'));assert.equal(state.created[0].img,'custom.png');} finally{game.folders.pop();}
+});
+
+test('dialog reads all preferred packs and saves settings only after confirmation',async()=>{
+ setup(async()=>{},true,'world'); const original=game.settings, oldPacks=game.packs;
+ const saved=new Map([['itemPack','world.official']]);
+ game.settings={get:(_m,k)=>saved.get(k)??'',async set(_m,k,v){saved.set(k,v);}};
+ game.packs={contents:[{collection:'world.official',documentName:'Item',title:'Official'},{collection:'world.custom',documentName:'Item',title:'Custom'}]};
+ state.form=async opts=>{assert.match(opts.content,/name="itemPack" multiple/);assert.match(opts.content,/value="world.official" selected/);assert.match(opts.content,/value="folder:folder1"/);const fields={sourceText:{value:fixture},destination:{value:'world'},mode:{value:'skip'},effectPack:{value:''},journalPack:{value:''},itemPack:{value:'world.official',selectedOptions:[{value:'world.official'},{value:'world.custom'}]}};return opts.ok.callback({}, {form:{elements:{namedItem:k=>fields[k]}}});};
+ try {const r=await openImporter();assert.equal(r.successes.length,4);assert.deepEqual(JSON.parse(saved.get('itemPack')),['world.official','world.custom']);} finally {game.settings=original;game.packs=oldPacks;}
+});
+test('icon update stays in explicitly selected folder and preserves same-named item elsewhere',async()=>{
+ setup(async rows=>choose(rows[0],'new.png'),true,'folder:folder2');state.mode='icons';game.folders.push({id:'folder2',name:'Subclasses',type:'Item'});
+ const other={id:'other',name:'Cinder Snap',type:'spell',folder:{id:'folder1'},img:'other.png'};
+ const selected={id:'selected',name:'Cinder Snap',type:'spell',folder:{id:'folder2'},img:'old.png',async update(p){this.img=p.img;}};
+ game.items.contents=[other,selected];try {const r=await openImporter();assert.deepEqual(r.updated,['Cinder Snap']);assert.equal(selected.img,'new.png');assert.equal(other.img,'other.png');assert.ok(state.created.every(x=>x.folder==='folder2'));}finally{game.folders.pop();}
 });

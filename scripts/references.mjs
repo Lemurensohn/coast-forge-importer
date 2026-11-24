@@ -25,6 +25,59 @@ export function createPackResolver(packs) {
     return doc;
   };
 }
+// v0.1.7: old single-pack strings remain readable; multi-selection uses a JSON array string.
+export function readPackSelection(value) {
+  if (typeof value === 'string' && value.trim().startsWith('[')) {
+    try { value = JSON.parse(value); } catch { throw new Error('Invalid External Grant Items selection.'); }
+  }
+  if (typeof value === 'string') value = value ? [value] : [];
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.some(p=>typeof p!=='string' || !p.trim())) throw new Error('Invalid External Grant Items selection.');
+  return [...new Set(value)];
+}
+const externalName = value => String(value).replace(/[’‘]/g,"'");
+const itemTypes = new Set(['feat','spell','weapon','equipment','consumable','tool','loot','container','class','subclass']);
+export function createExternalResolver(packs, selection) {
+  const preferred=readPackSelection(selection);
+  const all=(typeof packs?.entries==='function' ? [...packs.entries()] : values(packs).map(p=>[p.collection,p]))
+    .filter(([id,p])=>id && packType(p)==='Item').map(([id])=>id);
+  const indexCache=new Map(), docCache=new Map(), resolutionCache=new Map();
+  async function candidates(ids,name,type) {
+    const hits=[];
+    for (const id of ids) {
+      const pack=packs?.get(id);
+      if (!pack || packType(pack)!=='Item') throw new Error(`${name}: Item compendium ${id} is unavailable. Check External Grant Items.`);
+      if (!indexCache.has(id)) indexCache.set(id,Promise.resolve(pack.getIndex({fields:['type']})));
+      const index=values(await indexCache.get(id));
+      for (const row of index.filter(r=>externalName(r.name)===externalName(name) && (!type || !r.type || r.type===type))) {
+        const docId=row._id ?? row.id;
+        if (!docId) throw new Error(`${name}: index entry has no ID in ${id}.`);
+        const key=JSON.stringify([id,docId]);
+        if (!docCache.has(key)) docCache.set(key,Promise.resolve(pack.getDocument(docId)));
+        const doc=await docCache.get(key);
+        if (!doc?.uuid || externalName(doc.name)!==externalName(name)) throw new Error(`${name}: cannot load reference in ${id}.`);
+        if (!type || doc.type===type) hits.push({doc,pack:id});
+      }
+    }
+    return [...new Map(hits.map(h=>[h.doc.uuid,h])).values()];
+  }
+  return async (name,type,explicitPack) => {
+    if (typeof name!=='string' || !name.trim() || (type!==undefined && !itemTypes.has(type))) throw new Error('Invalid external item reference.');
+    if (explicitPack!==undefined && (typeof explicitPack!=='string' || !explicitPack.trim())) throw new Error('Invalid explicit item compendium.');
+    const cacheKey=JSON.stringify([externalName(name),type,explicitPack]);
+    if (!resolutionCache.has(cacheKey)) resolutionCache.set(cacheKey,(async()=>{
+      let hits=await candidates(explicitPack ? [explicitPack] : preferred,name,type);
+      if (!hits.length && !explicitPack) hits=await candidates(all.filter(id=>!preferred.includes(id)),name,type);
+      if (hits.length!==1) throw new Error(hits.length ? `${name}: ambiguous external reference in ${hits.map(h=>h.pack).join(', ')}. Select a single preferred matching compendium or specify an exact pack.` : `${name}: not found in ${explicitPack || 'available Item compendiums'}.`);
+      return hits[0].doc;
+    })());
+    return resolutionCache.get(cacheKey);
+  };
+}
+const descriptionPattern = () => /\[\[(condition|spell|item|feature):([^\]\n]+)\]\]/g;
+export function hasDescriptionReferences(item) {
+  return [item.description,...(item.effects ?? []).map(e=>e.description)].some(s=>typeof s==='string' && descriptionPattern().test(s));
+}
 // An exact entry or page within the explicitly selected journal source.
 // Never fall back to plain text or silently select an unrelated journal.
 export async function resolveJournal(source, name, packs, worldJournals, cache = new Map()) {
@@ -55,7 +108,9 @@ export async function resolveJournal(source, name, packs, worldJournals, cache =
 export async function resolveReferences(input, settings, packs, makeId, worldJournals) {
   const items = clone(input), warnings = [], resolve = createPackResolver(packs);
   const journalCache = new Map();
-  let effects = 0, journals = 0, grants = 0;
+  const resolveExternal = createExternalResolver(packs,settings.itemPack);
+  const grantDocs = new Map();
+  let effects = 0, journals = 0, grants = 0, itemLinks = 0;
   for (const item of items) {
     if (item.effectRefs !== undefined && (!Array.isArray(item.effectRefs) || item.effectRefs.length > 30)) throw new Error(`${item.name}: invalid effectRefs.`);
     for (const ref of item.effectRefs ?? []) {
@@ -95,7 +150,10 @@ export async function resolveReferences(input, settings, packs, makeId, worldJou
       const links=[];
       for (const entry of ref.items) {
         if (!entry || (entry.optional !== undefined && typeof entry.optional !== 'boolean')) throw new Error('Invalid external grant.');
-        const doc=await resolve(entry.pack ?? settings.itemPack,'Item',entry.name);
+        const doc=await resolveExternal(entry.name,entry.type,entry.pack);
+        const grantKey=externalName(entry.name);
+        if (!grantDocs.has(grantKey)) grantDocs.set(grantKey,new Map());
+        grantDocs.get(grantKey).set(doc.uuid,doc);
         if (links.some(l=>l.uuid===doc.uuid)) throw new Error(`Duplicate external grant: ${entry.name}`);
         links.push({uuid:doc.uuid,optional:entry.optional ?? false});
       }
@@ -103,19 +161,38 @@ export async function resolveReferences(input, settings, packs, makeId, worldJou
       grants+=links.length;
       warnings.push(`${item.name}: ${links.length} externe Grant-Referenzen aufgelöst.`);
     }
-    // Only explicit placeholders; never rewrite ordinary rules text or native &Reference links.
-    if (typeof item.description === 'string') {
-      const matches = [...item.description.matchAll(/\[\[condition:([^\]\n]+)\]\]/g)];
-      for (const m of matches) {
-        const name=m[1];
-        const doc=await resolveJournal(settings.journalPack,name,packs,worldJournals,journalCache);
-        if (/[\[\]{}\n]/.test(doc.uuid+name)) throw new Error('Invalid journal link.');
-        const replacement=`@UUID[${doc.uuid}]{${name}}`; journals++;
-        warnings.push(`${item.name}: Journal-Link ${name} aufgelöst; Darstellung live prüfen.`);
-        item.description=item.description.replace(m[0],()=>replacement);
-      }
-    }
     delete item.effectRefs; delete item.compendiumGrants;
   }
-  return {items,warnings,effects,journals,grants};
+  // Resolve descriptions only after all grants so the same spell UUID can be reused.
+  // Existing @UUID and native &Reference links and ordinary rules text are untouched.
+  async function linkText(text,itemName,html=false) {
+    if (typeof text!=='string') return text;
+    for (const m of [...text.matchAll(descriptionPattern())]) {
+      const kind=m[1]; const [name,pack,...extra]=m[2].split('|');
+      if (!name.trim() || extra.length || (pack!==undefined && !pack.trim()) || /[\[\]{}<>\n]/.test(name)) throw new Error('Invalid description reference.');
+      let doc;
+      if (kind==='condition') {
+        if (pack!==undefined) throw new Error('Condition links use the selected Condition Journals source.');
+        doc=await resolveJournal(settings.journalPack,name,packs,worldJournals,journalCache);
+        journals++;
+      } else {
+        const type=kind==='spell'?'spell':kind==='feature'?'feat':undefined;
+        const known=[...(grantDocs.get(externalName(name))?.values() ?? [])].filter(d=>!type || d.type===type);
+        if (!pack && known.length>1) throw new Error(`${name}: ambiguous grant UUID for description; specify an exact pack.`);
+        doc=!pack && known.length===1 ? known[0] : await resolveExternal(name,type,pack);
+        itemLinks++;
+      }
+      if (typeof doc.uuid!=='string' || /[\[\]{}<>\s]/.test(doc.uuid)) throw new Error('Invalid document UUID.');
+      const label=html ? name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : name;
+      const replacement=`@UUID[${doc.uuid}]{${label}}`;
+      warnings.push(`${itemName}: ${kind}-Link ${name} aufgelöst (${doc.uuid}); Darstellung live prüfen.`);
+      text=text.replace(m[0],()=>replacement);
+    }
+    return text;
+  }
+  for (const item of items) {
+    if (typeof item.description==='string') item.description=await linkText(item.description,item.name);
+    for (const effect of item.effects ?? []) if (typeof effect.description==='string') effect.description=await linkText(effect.description,item.name,true);
+  }
+  return {items,warnings,effects,journals,grants,itemLinks};
 }
