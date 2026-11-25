@@ -77,3 +77,13 @@ test('updateExisting icon-only writes embedded icon patch, not system or full ef
 test('updateExisting rejects stale effect ID before any writes',async()=>{
  const d={img:'old.webp',toObject:()=>({effects:[]}),async update(){throw Error('unexpected write');}};await assert.rejects(updateExisting(d,{img:'new.webp'},'icons',true,x=>x,[{_id:'missing',img:'x'}]),/Effect changed/);
 });
+test('commit never mutates protected legacy icon properties or frozen effect data',()=>{
+ const f=fixture([fx('A','icons/svg/aura.svg')]);
+ const effect=f.row.data.effects[0];
+ // Simulate a Foundry migration alias in an otherwise read-only source object.
+ Object.defineProperty(effect,'icon',{get(){return this.img;},configurable:false,enumerable:true});
+ Object.freeze(effect.flags);Object.freeze(effect);
+ const icons=createIconChoices([f.row]);const choices=createEffectIconChoices([f.row],icons);
+ icons.select(0,'ring-new.webp');icons.commit();choices.commit();
+ const saved=f.row.data.effects[0];assert.equal(saved.img,'ring-new.webp');assert.equal(Object.hasOwn(saved,'icon'),false);assert.equal(effect.img,'icons/svg/aura.svg');assert.deepEqual(saved.changes,effect.changes);assert.deepEqual(saved.flags.dae,effect.flags.dae);
+});

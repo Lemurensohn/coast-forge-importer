@@ -114,7 +114,9 @@ function preflight(items) {
   for (const item of items) {
     try {
       const data = buildItemData(item, () => foundry.utils.randomID());
-      new CONFIG.Item.documentClass(data);
+      // Foundry may add non-configurable migration accessors to its input.
+      // Validate a detached copy, never the editable import payload.
+      new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(data)));
       results.push({ item, data, error: null });
     } catch (error) {
       results.push({ item, data: null, error: String(error?.message ?? error) });
@@ -291,7 +293,7 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
           if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
           documents.set(item.ref, matches[0]);
         }
-        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(d).toObject(),effectIconPatches)) updated.push(item.name);
+        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(d))).toObject(),effectIconPatches)) updated.push(item.name);
         else skipped.push(item.name);
         continue;
       }

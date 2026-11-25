@@ -82,7 +82,7 @@ export function createEffectIconChoices(preview, itemIcons, mode = 'skip') {
         const row=preview[i];
         const only=mode==='icons' && row.existing;
         const patches=[];
-        entries.forEach(({effect,current,touched})=>{
+        entries.forEach(({effect,current,touched},j)=>{
           const path=pathFor(i,current);
           if (!validPath(path)) return;
           const meta={mode:current.mode,original:current.original,applied:path};
@@ -93,8 +93,10 @@ export function createEffectIconChoices(preview, itemIcons, mode = 'skip') {
             if (path===image(effect) && !touched) return;
             patches.push({_id:effect._id ?? effect.id,img:path,[`flags.${SCOPE}.effectIcon`]:meta});
           } else {
-            effect.img=path; delete effect.icon;
-            effect.flags ??= {}; effect.flags[SCOPE] ??= {}; effect.flags[SCOPE].effectIcon=meta;
+            // Rebuild plain data rather than deleting a potentially protected
+            // legacy migration accessor on the existing object.
+            const {icon: _legacyIcon, ...plain} = effect;
+            row.data.effects[j] = {...plain,img:path,flags:{...plain.flags,[SCOPE]:{...plain.flags?.[SCOPE],effectIcon:meta}}};
           }
         });
         if (patches.length) row.effectIconPatches=patches;

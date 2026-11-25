@@ -46,3 +46,14 @@ test('icon-only repairs existing legacy effects and changes individual effect wi
  const doc={id:'existing1',name:'Ring of Sun',type:'equipment',img:'existing-ring.webp',folder:{id:'folder1'},toObject:()=>({effects:structuredClone(effects)}),async updateEmbeddedDocuments(t,patches){calls.push([t,patches]);},async update(){throw Error('parent must not change');}};game.items.contents=[doc];
  const result=await openImporter();assert.deepEqual(result.updated,['Ring of Sun']);assert.equal(calls.length,1);assert.equal(calls[0][0],'ActiveEffect');assert.deepEqual(calls[0][1].map(p=>p.img),['existing-ring.webp','new-zenith.webp']);assert.ok(calls[0][1].every(p=>Object.keys(p).length===3 && p[`flags.${scope}.effectIcon`]));assert.equal(state.created.length,0);
 });
+test('Foundry validation may install non-configurable legacy icon accessors on its input',async()=>{
+ const original=CONFIG.Item.documentClass;
+ let validated=0;
+ CONFIG.Item.documentClass=class extends original {
+  constructor(data){super(data);validated++;for(const effect of data.effects??[]) Object.defineProperty(effect,'icon',{get(){return this.img;},configurable:false,enumerable:false});}
+ };
+ try {
+  setup(async row=>{await pick(row.fields['.coast-forge-pick-icon'],'safe-ring.webp');});
+  const result=await openImporter();assert.equal(result.successes.length,1);assert.ok(validated);assert.deepEqual(state.created[0].effects.map(e=>e.img),['safe-ring.webp','safe-ring.webp']);assert.ok(state.created[0].effects.every(e=>!Object.hasOwn(e,'icon')));
+ } finally {CONFIG.Item.documentClass=original;}
+});

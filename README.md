@@ -123,3 +123,7 @@ Der erste Importdialog hat einen eigenen vertikalen Scrollbereich (65vh), ein kl
 - Foundry v13 verwendet nativ `img`; alte `icon`-Eingaben bleiben kompatibel. Ein bewusst gewähltes generisches Bild lässt sich auch in der JSON per `flags: {"coast-forge-importer": {"effectIcon": {"mode": "original"}}}` am Effect schützen.
 - Keine Live-Hooks: Änderungen am Item-Icon außerhalb des Importers synchronisieren sich nicht automatisch mit Effects; bereits vorhandene Actor-Kopien werden nicht automatisch aktualisiert. Keine Änderungen an Effektlaufzeiten; QA v2.10 (manuelle Laufzeiten) bleibt verbindlich, erweitert durch QA v2.11. Bestehende Compendium-Timer müssen weiterhin vorab geprüft werden.
 - Testdatei: `examples/36-ring-of-sun-v2.json`. Zwei Effects, beide ohne Timer, für Vererbung und eigenes Zenith-Icon geeignet. Node-Tests: `node --test tests/*.test.mjs`; echte Foundry-Darstellung und Midi-QOL-Livetest separat.
+
+## v0.1.10 — Active-Effect-Icon-Hotfix
+
+Die Vorprüfung verwendet eine getrennte Datenkopie. Beim Zuweisen von Effect-Icons werden neue Datenobjekte erzeugt, statt geschützte alte `icon`-Eigenschaften zu löschen. Alle bisherigen Importdateien und QA v2.11 bleiben gültig.
