@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Ring of Sun",
+      "kind": "equipment",
+      "automation": "partial",
+      "description": "Ring, Very Rare (Requires Attunement)\n\nA polished golden ring bearing a stylized sun. Its surface is always faintly warm to the touch.\n\nThe ring recognizes the natural cycle of the world rather than surrounding illumination. Its daytime abilities function from sunrise until sunset, even while underground or indoors.\n\nSunlit Resolve\n\nDuring daytime, you gain the following benefits:\n• Your Speed increases by 10 feet.\n• You gain a +1 bonus to AC and Saving Throws.\n• The first time you hit a creature with an attack on each of your turns, the attack deals an additional 1d8 Radiant damage.\n\nUnyielding Noon\n\nOnce per turn during daytime, when you take damage, you can reduce that damage by an amount equal to your Proficiency Bonus + your Charisma modifier. No action is required.\n\nZenith\n\nOnce per Long Rest, while it is daytime, you can use a Bonus Action to invoke the ring's full power for 1 minute.\n\nFor the duration:\n• Your Speed increases by an additional 20 feet.\n• You emit Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.\n• The additional damage from Sunlit Resolve increases from 1d8 to 3d8 Radiant damage.\n• At the start of each of your turns, you gain Temporary Hit Points equal to 2 × your Proficiency Bonus.\n• When you hit a creature with an attack, that creature can't make Opportunity Attacks against you for the rest of the turn.\n\nOnce Zenith ends, you can't use it again until you finish a Long Rest.",
+      "system": {
+        "type": {
+          "value": "ring"
+        },
+        "rarity": "veryRare",
+        "properties": [
+          "mgc"
+        ],
+        "quantity": 1,
+        "equipped": false,
+        "attunement": "required",
+        "attuned": false,
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Zenith",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "visibility": {
+            "requireMagic": true,
+            "requireAttunement": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Daytime only. Expend the Long Rest use and apply Zenith to yourself. Track the 1-minute duration manually; disable or remove Zenith when it ends. At the start of each of your turns while Zenith is active, manually gain Temporary HP equal to twice your Proficiency Bonus. Handle the hit-specific Opportunity Attack restriction manually."
+          },
+          "effects": [
+            {
+              "_id": "RingSunZenith001"
+            }
+          ]
+        },
+        {
+          "type": "utility",
+          "name": "Unyielding Noon",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "visibility": {
+            "requireMagic": true,
+            "requireAttunement": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Daytime only. Once per turn when you take damage, reduce that damage by the rolled amount. No action. Apply the reduction manually."
+          },
+          "roll": {
+            "formula": "@prof + @abilities.cha.mod",
+            "name": "Damage Reduction",
+            "prompt": false
+          }
+        },
+        {
+          "type": "damage",
+          "name": "Sunlit Resolve — Radiant Damage",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "visibility": {
+            "requireMagic": true,
+            "requireAttunement": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "spec",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "creature",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Daytime, first hit on your own turn only. Use this only when Zenith is not active. Apply this as part of the triggering attack; select Critical if that attack was critical. Do not count it as another attack."
+          },
+          "damage": {
+            "critical": {
+              "allow": true
+            }
+          },
+          "damageParts": [
+            {
+              "formula": "1d8",
+              "type": "radiant"
+            }
+          ]
+        },
+        {
+          "type": "damage",
+          "name": "Zenith — Radiant Damage",
+          "activation": {
+            "type": "special",
+            "cost": 0
+          },
+          "visibility": {
+            "requireMagic": true,
+            "requireAttunement": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": []
+          },
+          "range": {
+            "units": "spec",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "creature",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "First hit on your own turn while Zenith increases Sunlit Resolve. Replaces the 1d8, not in addition to it. Apply this as part of the triggering attack; select Critical if that attack was critical. Do not count it as another attack."
+          },
+          "damage": {
+            "critical": {
+              "allow": true
+            }
+          },
+          "damageParts": [
+            {
+              "formula": "3d8",
+              "type": "radiant"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "name": "Sunlit Resolve",
+          "icon": "icons/svg/aura.svg",
+          "transfer": true,
+          "disabled": true,
+          "description": "<p>During daytime, you gain the following benefits:</p><ul><li>Your Speed increases by 10 feet.</li><li>You gain a +1 bonus to AC and Saving Throws.</li><li>The first time you hit a creature with an attack on each of your turns, the attack deals an additional 1d8 Radiant damage.</li></ul>",
+          "changes": [
+            {
+              "key": "system.attributes.movement.bonus",
+              "mode": 2,
+              "value": "10",
+              "priority": 20
+            },
+            {
+              "key": "system.attributes.ac.bonus",
+              "mode": 2,
+              "value": "1",
+              "priority": 20
+            },
+            {
+              "key": "system.bonuses.abilities.save",
+              "mode": 2,
+              "value": "1",
+              "priority": 20
+            }
+          ],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          }
+        },
+        {
+          "_id": "RingSunZenith001",
+          "name": "Zenith",
+          "icon": "icons/svg/aura.svg",
+          "transfer": false,
+          "disabled": false,
+          "description": "<p>Once per Long Rest, while it is daytime, you can use a Bonus Action to invoke the ring's full power for 1 minute.</p><p>For the duration:</p><ul><li>Your Speed increases by an additional 20 feet.</li><li>You emit Bright Light in a 30-foot radius and Dim Light for an additional 30 feet.</li><li>The additional damage from Sunlit Resolve increases from 1d8 to 3d8 Radiant damage.</li><li>At the start of each of your turns, you gain Temporary Hit Points equal to 2 × your Proficiency Bonus.</li><li>When you hit a creature with an attack, that creature can't make Opportunity Attacks against you for the rest of the turn.</li></ul><p>Once Zenith ends, you can't use it again until you finish a Long Rest.</p>",
+          "changes": [
+            {
+              "key": "system.attributes.movement.bonus",
+              "mode": 2,
+              "value": "20",
+              "priority": 20
+            },
+            {
+              "key": "ATL.light.bright",
+              "mode": 4,
+              "value": "30",
+              "priority": 20
+            },
+            {
+              "key": "ATL.light.dim",
+              "mode": 4,
+              "value": "60",
+              "priority": 20
+            }
+          ],
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

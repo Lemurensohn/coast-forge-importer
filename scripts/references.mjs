@@ -1,3 +1,4 @@
+import { isGenericEffectIcon } from './effect-icons.mjs';
 /** Resolve explicit references only; never guess UUIDs or search unrelated packs. */
 const clone = v => JSON.parse(JSON.stringify(v));
 const values = v => Array.isArray(v) ? v : v?.contents ?? (v?.values ? [...v.values()] : Object.values(v ?? {}));
@@ -130,9 +131,11 @@ export async function resolveReferences(input, settings, packs, makeId, worldJou
       effect.transfer = false; effect.disabled = false;
       // Preserve the effect's artwork; inherit the item artwork for default/missing icons.
       const image = effect.img || effect.icon;
-      effect.img = (!image || image.startsWith('icons/svg/')) ? (source.img || image || 'icons/svg/aura.svg') : image;
+      effect.img = (!image || (isGenericEffectIcon(image) && !(effect.statuses?.length) && effect.flags?.['coast-forge-importer']?.effectIcon?.mode !== 'original')) ? (source.img || image || 'icons/svg/aura.svg') : image;
       delete effect.icon;
       effect.flags ??= {}; effect.flags.dae ??= {}; effect.flags.dae.showIcon = true;
+      effect.flags['coast-forge-importer'] ??= {};
+      effect.flags['coast-forge-importer'].effectIcon = {mode:'original',original:effect.img,applied:effect.img};
       item.effects ??= []; activity.effects ??= [];
       if (item.effects.length >= 30 || item.effects.some(e=>e._id===effect._id)) throw new Error(`${item.name}: effect limit or duplicate ID.`);
       item.effects.push(effect);

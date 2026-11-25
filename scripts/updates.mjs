@@ -2,13 +2,20 @@ export const MODES = ['skip','icons','update'];
 const clone = v => JSON.parse(JSON.stringify(v));
 export function matchingItems(collection,data) {return collection.filter(i=>i.name===data.name && i.type===data.type);}
 /** Updates only the chosen world template. Never propagates changes to actors. */
-export async function updateExisting(doc,data,mode,iconChanged,normalize=x=>x) {
+export async function updateExisting(doc,data,mode,iconChanged,normalize=x=>x,effectIconPatches=[]) {
   if (!MODES.includes(mode)) throw new Error('Invalid update mode.');
   if (mode==='skip') return false;
   if (mode==='icons') {
-    if (!iconChanged) return false;
-    await doc.update({img:data.img});
-    if (doc.img!==data.img) throw new Error('Icon verification failed.');
+    if (!iconChanged && !effectIconPatches.length) return false;
+    if (effectIconPatches.length) {
+      const ids = new Set((doc.effects?.contents ?? doc.toObject?.()?.effects ?? []).map(e=>e.id ?? e._id));
+      if (effectIconPatches.some(p=>!ids.has(p._id))) throw new Error('Effect changed after preview. Restart import.');
+      await doc.updateEmbeddedDocuments('ActiveEffect',effectIconPatches);
+    }
+    if (iconChanged) {
+      await doc.update({img:data.img});
+      if (doc.img!==data.img) throw new Error('Icon verification failed.');
+    }
     return true;
   }
   if (doc.parent) throw new Error('Full update is restricted to World Items.');

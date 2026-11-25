@@ -114,3 +114,12 @@ Der erste Importdialog hat einen eigenen vertikalen Scrollbereich (65vh), ein kl
 - Suche nach Name oder Collection-ID, Anzahl ausgewählter Quellen und Auswahl leeren. Filter ändern keine gesetzten Häkchen. Kein Strg+Klick mehr erforderlich.
 - Speicherung und Resolver unverändert; v0.1.7-Auswahl bleibt erhalten. QA v2.9 und bestehendes Importformat unverändert.
 - Live-Test: gespeicherte Häkchen prüfen, per Suche eine weitere Quelle anhaken, Suche löschen, Vorschau bestätigen und erneut öffnen. Bei geringer Fensterhöhe äußeren Dialogscroll nutzen.
+
+## v0.1.9 — Active-Effect-Icons
+
+- Normale Effects mit fehlendem oder bekanntem generischem Icon übernehmen das endgültige Item-Icon. Native Status-Effects, Compendium-Kopien und ausdrücklich eigene Bilder behalten ihre Artworks.
+- In der Vorschau pro Item **Active Effects – Icons (optional)** aufklappen. Pro Effect: Item-Icon übernehmen, Eigenes Icon (Foundry FilePicker), Original-Icon behalten. Reset stellt die anfängliche Auswahl wieder her. Ohne zusätzliche Auswahl gelten die Standardregeln.
+- `Update Icons Only` verwendet die vorhandenen Embedded Effects (nicht die neuen JSON-IDs) und aktualisiert ausschließlich `img` und Icon-Metadaten. Auch alte generische Icons können ohne neue Item-Bildauswahl repariert werden. Individuelle Bilder bleiben geschützt; bei unmarkierten generischen Alt-Icons ist eine individuelle Absicht nicht erkennbar. `Skip Existing` ändert nichts. Vollupdate ordnet alte Bilder über gleiche ID bzw. eindeutigen Namen zu; bei mehrdeutiger Zuordnung manuell prüfen.
+- Foundry v13 verwendet nativ `img`; alte `icon`-Eingaben bleiben kompatibel. Ein bewusst gewähltes generisches Bild lässt sich auch in der JSON per `flags: {"coast-forge-importer": {"effectIcon": {"mode": "original"}}}` am Effect schützen.
+- Keine Live-Hooks: Änderungen am Item-Icon außerhalb des Importers synchronisieren sich nicht automatisch mit Effects; bereits vorhandene Actor-Kopien werden nicht automatisch aktualisiert. Keine Änderungen an Effektlaufzeiten; QA v2.10 (manuelle Laufzeiten) bleibt verbindlich, erweitert durch QA v2.11. Bestehende Compendium-Timer müssen weiterhin vorab geprüft werden.
+- Testdatei: `examples/36-ring-of-sun-v2.json`. Zwei Effects, beide ohne Timer, für Vererbung und eigenes Zenith-Icon geeignet. Node-Tests: `node --test tests/*.test.mjs`; echte Foundry-Darstellung und Midi-QOL-Livetest separat.

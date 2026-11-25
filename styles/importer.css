@@ -32,3 +32,16 @@
 .coast-forge-pack-row span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .coast-forge-dialog .coast-forge-pack-row[hidden], .coast-forge-pack-empty[hidden] { display: none !important; }
 .coast-forge-pack-empty { padding: 8px; }
+/* v0.1.9 — optional, per-effect artwork. No changes to effect mechanics. */
+.coast-forge-preview { max-width: 900px; }
+.coast-forge-preview td { vertical-align: top; }
+.coast-forge-effect-picker { margin: 6px 0 !important; min-width: 205px; }
+.coast-forge-effect-picker summary { cursor: pointer; font-size: .86em; overflow-wrap: anywhere; }
+.coast-forge-effect-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-top: 1px solid var(--color-border-light-2,#888); }
+.coast-forge-effect-image { width: 40px; height: 40px; flex: 0 0 40px; object-fit: contain; border-radius: 4px; }
+.coast-forge-effect-fields { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.coast-forge-effect-fields strong { overflow-wrap: anywhere; }
+.coast-forge-effect-fields select { width: 100%; min-width: 0; font-size: .85em; }
+.coast-forge-effect-buttons { display: flex; flex-wrap: wrap; gap: 4px; }
+.coast-forge-effect-buttons button { width: auto; padding: 2px 6px; font-size: .8em; height: auto; min-height: 23px; }
+.coast-forge-effect-buttons button[hidden] { display: none !important; }

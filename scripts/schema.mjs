@@ -161,6 +161,10 @@ export function buildItemData(spec, makeId) {
     disabled: effect.disabled ?? false,
     transfer: effect.transfer ?? false
   }));
+  for (const effect of effects) {
+    if (!effect.img && effect.icon) effect.img = effect.icon;
+    delete effect.icon;
+  }
   const flags = clone(spec.flags ?? {});
   flags["coast-forge-importer"] = {
     schemaVersion: SCHEMA_VERSION,

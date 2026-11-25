@@ -4,6 +4,7 @@ import { planGrants, linkGrants } from "./grants.mjs";
 import { parseImport, buildItemData, escapeHtml } from "./schema.mjs";
 import { isWorldDestination, folderChoices, findWorldFolder, DEFAULT_FOLDER } from "./destinations.mjs";
 import { createIconChoices } from "./icons.mjs";
+import { createEffectIconChoices } from "./effect-icons.mjs";
 import { renderPackPicker, bindPackPicker, selectedPacks } from "./pack-picker.mjs";
 
 const MODULE_ID = "coast-forge-importer";
@@ -122,10 +123,11 @@ function preflight(items) {
   return results;
 }
 
-// v0.1.2: a native FilePicker for each preview row. Only img is changed.
+// v0.1.9: native FilePicker for item and optional effect artwork.
 async function confirmPreview(preview, warnings, destination, mode = "skip") {
   for (const row of preview) if (row.data && row.existing?.img) row.data.img = row.existing.img;
   const icons = createIconChoices(preview);
+  const effectIcons = createEffectIconChoices(preview, icons, mode);
   let picker = null;
   let generation = 0;
   let active = true;
@@ -137,12 +139,23 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
         <button type="button" class="coast-forge-pick-icon" title="Icon auswählen: ${escapeHtml(item.name)}"><i class="fa-solid fa-image"></i> Bild wählen</button>
         <button type="button" class="coast-forge-reset-icon" title="Ursprüngliches Icon wiederherstellen" disabled><i class="fa-solid fa-rotate-left"></i> Reset</button>
       </div></div>`;
+    const effectList = effectIcons.list(index);
+    const effectCell = effectList.length ? `<details class="coast-forge-effect-picker"><summary>Active Effects (${effectList.length}) – Icons (optional)</summary>
+      ${effectList.map(({index:j,name})=>{
+        const choice=effectIcons.get(index,j);
+        return `<div class="coast-forge-effect-row" data-coast-forge-effect="${j}">
+          <img class="coast-forge-effect-image" src="${escapeHtml(choice.path)}" alt="">
+          <div class="coast-forge-effect-fields"><strong>${escapeHtml(name)}</strong>
+            <select class="coast-forge-effect-mode" aria-label="Icon-Modus: ${escapeHtml(name)}">${[['inherit','Item-Icon übernehmen'],['custom','Eigenes Icon'],['original','Original-Icon behalten']].map(([v,l])=>`<option value="${v}" ${choice.mode===v?'selected':''}>${l}</option>`).join('')}</select>
+            <div class="coast-forge-effect-buttons"><button type="button" class="coast-forge-effect-choose" ${choice.mode==='custom'?'':'hidden'}><i class="fa-solid fa-image"></i> Bild wählen</button><button type="button" class="coast-forge-effect-reset" disabled>Reset</button></div>
+          </div></div>`;
+      }).join('')}</details>` : '';
     return `<tr data-coast-forge-row="${index}">
       <td>${iconCell}</td>
-      <td>${escapeHtml(item.name)}</td>
+      <td>${escapeHtml(item.name)}${effectCell}</td>
       <td>${escapeHtml(item.type ?? item.kind ?? "")}</td>
       <td>${item.activities?.length ?? Object.keys(item.system?.activities ?? {}).length}</td>
-      <td>${data?.effects?.length ?? item.effects?.length ?? 0}</td>
+      <td>${effectList.length || data?.effects?.length || item.effects?.length || 0}</td>
       <td>${error ? `<span class="coast-forge-error">${escapeHtml(error)}</span>` : escapeHtml(preview[index].existing ? (mode === "update" ? "Update" : mode === "icons" ? "Icon only (bei Auswahl)" : "Skip") : "Create")}</td>
       </tr>`;
   }).join("");
@@ -154,13 +167,13 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
   let approved;
   try {
     approved = await DialogV2.confirm({
-      window: { title: "Coast Forge – Importvorschau" },
-      position: { width: 760 },
+      window: { title: "Coast Forge – Importvorschau", resizable: true },
+      position: { width: Math.min(900, Math.max(300, (globalThis.innerWidth ?? 932) - 32)) },
       modal: false,
       content: `<div class="coast-forge-preview">
         <p><strong>${count} von ${preview.length} Items vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
         ${mode === "update" ? `<p class="coast-forge-error"><strong>Vollupdate:</strong> Bestehende Regeln, Activities, Effects und Advancements werden ersetzt. Vorher Welt sichern; kein automatischer Rollback.</p>` : ""}
-        <p class="hint">Optional: Wähle für jedes Item ein eigenes Bild aus der Foundry-Dateiauswahl. Ohne Auswahl bleibt das bisherige Icon erhalten.</p>
+        <p class="hint">Optional: Wähle für jedes Item ein eigenes Bild aus der Foundry-Dateiauswahl. Ohne Auswahl bleibt das Item-Icon erhalten. Normale Effects übernehmen es automatisch; unter Active Effects kannst du einzelne Icons abweichend einstellen.</p>
         <table><thead><tr><th>Icon</th><th>Name</th><th>Typ</th><th>Activities</th><th>Effekte</th><th>Prüfung</th></tr></thead><tbody>${rows}</tbody></table>
         ${warningList}<p class="hint">Die Vorschau ist eine lokale Datenmodellprüfung; sie garantiert noch keine funktionierende Midi-QOL-Automation.</p>
       </div>`,
@@ -171,17 +184,30 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
           const reset = row.querySelector(".coast-forge-reset-icon");
           const image = row.querySelector(".coast-forge-item-icon");
           if (!choose || !reset || !image) continue;
+          const effectControls = Array.from(row.querySelectorAll?.("[data-coast-forge-effect]") ?? []).map(el=>({
+            index:Number(el.dataset.coastForgeEffect),
+            image:el.querySelector(".coast-forge-effect-image"),
+            mode:el.querySelector(".coast-forge-effect-mode"),
+            choose:el.querySelector(".coast-forge-effect-choose"),
+            reset:el.querySelector(".coast-forge-effect-reset")
+          }));
           const refresh = () => {
             const path = icons.get(index);
             image.src = path;
             image.title = path;
             reset.disabled = !icons.changed(index);
+            for (const control of effectControls) {
+              const value = effectIcons.get(index,control.index);
+              control.image.src=value.path; control.image.title=value.path;
+              control.mode.value=value.mode;
+              control.choose.hidden=value.mode!=="custom";
+              control.reset.disabled=!value.touched;
+            }
           };
           refresh();
-          // Assign handlers rather than accumulating listeners on dialog re-render.
-          choose.onclick = async event => {
-            event.preventDefault();
-            event.stopPropagation();
+          // A single native picker, with stale callback protection shared by all rows.
+          const openPicker = async (event,current,select) => {
+            event.preventDefault(); event.stopPropagation();
             if (!active) return;
             const request = ++generation;
             try {
@@ -190,10 +216,9 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
               const NativePicker = foundry.applications.apps.FilePicker;
               const Picker = NativePicker.implementation ?? NativePicker;
               const opened = new Picker({
-                type: "image",
-                current: icons.get(index),
+                type: "image", current,
                 callback: path => {
-                  if (!active || request !== generation || !icons.select(index, path)) return;
+                  if (!active || request !== generation || !select(path)) return;
                   refresh();
                 }
               });
@@ -206,11 +231,21 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
               if (!opened.rendered) await opened.render({ force: true });
             } catch (error) { notifyError(error); }
           };
+          choose.onclick = event => openPicker(event,icons.get(index),path=>icons.select(index,path));
           reset.onclick = event => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (active && icons.reset(index)) refresh();
+            event.preventDefault(); event.stopPropagation();
+            if (active && icons.reset(index)) { generation++; refresh(); }
           };
+          for (const control of effectControls) {
+            control.mode.onchange = () => {
+              if (active && effectIcons.setMode(index,control.index,control.mode.value)) { generation++; refresh(); }
+            };
+            control.choose.onclick = event => openPicker(event,effectIcons.get(index,control.index).path,path=>effectIcons.select(index,control.index,path));
+            control.reset.onclick = event => {
+              event.preventDefault(); event.stopPropagation();
+              if (active && effectIcons.reset(index,control.index)) { generation++; refresh(); }
+            };
+          }
         }
       },
       yes: { label: "Importieren" }, no: { label: "Abbrechen" },
@@ -219,6 +254,7 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
     if (approved) {
       for (let i=0;i<preview.length;i++) preview[i].iconChanged=icons.changed(i);
       icons.commit();
+      effectIcons.commit();
     }
     return approved;
   } finally {
@@ -244,7 +280,7 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
   let linked = 0;
   const { actor, folder } = await resolveTarget(destination);
   const successes = [], skipped = [], failures = [], updated = [];
-  for (const { item, data, error, iconChanged, existing } of preview) {
+  for (const { item, data, error, iconChanged, existing, effectIconPatches } of preview) {
     if (error) { failures.push(`${item.name}: ${error}`); continue; }
     try {
       const collection = actor ? actor.items.contents : game.items.contents.filter(i => i.folder?.id === folder.id);
@@ -255,7 +291,7 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
           if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
           documents.set(item.ref, matches[0]);
         }
-        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(d).toObject())) updated.push(item.name);
+        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(d).toObject(),effectIconPatches)) updated.push(item.name);
         else skipped.push(item.name);
         continue;
       }
