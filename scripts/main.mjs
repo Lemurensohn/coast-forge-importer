@@ -368,7 +368,10 @@ export async function openImporter() {
       const signature = JSON.stringify([row.data.name,row.data.type]);
       if (mode!=="skip" && (matches.length>1 || seen.has(signature))) throw new Error(`${row.data.name}: ambiguous update target.`);
       seen.add(signature);
-      if (matches.length===1) row.existing=matches[0];
+      if (matches.length===1) {
+        row.existing=matches[0];
+        if (row.existing.name!==row.data.name) parsed.warnings.push(`${row.data.name}: existing legacy-named scroll found (${row.existing.name}). It will not be renamed automatically; rename it manually or use the optional rename macro.`);
+      }
       if (plans.length && row.item.ref && matches.length && (matches.length!==1 || matches[0].flags?.[MODULE_ID]?.localRef!==row.item.ref)) throw new Error(`${row.data.name}: existing item does not match local reference.`);
     }
     if (parsed.scrolls?.length && preview.some(p=>p.error)) throw new Error("Scroll import blocked: " + preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));

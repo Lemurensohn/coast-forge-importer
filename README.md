@@ -157,3 +157,7 @@ The conversion calls D&D5e 5.2.5 `CONFIG.Item.documentClass.createScrollFromSpel
 Test file: `examples/54-spell-scrolls-TEST.json` (8 variants). Check Cure Wounds healing, Fireball damage and fixed DC, Hold Person condition and target scaling, Ray of Frost attack and cantrip damage, consumption, and no timed Active Effect. Tests run on Node with simulated Foundry APIs, not a live server.
 
 Reference: https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/item.mjs (native scroll API); https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/config.mjs (scroll values).
+
+## v0.1.12 — Level-first scroll names
+
+Generated scroll names now use `1st Spellscroll – Cure Wounds`, `2nd Spellscroll – Cure Wounds`, … `9th Spellscroll – Cure Wounds`; level zero uses `Cantrip Spellscroll – Ray of Frost`. No JSON changes. The duplicate check also recognizes existing generated v0.1.11 scrolls by their legacy name and matching level metadata in the chosen destination. Existing documents are not automatically renamed; the optional GM macro in `examples/rename-legacy-scrolls.js` renames only matching generated World Items without changing IDs or mechanics. Back up before running. Actor copies and compendiums are not changed.

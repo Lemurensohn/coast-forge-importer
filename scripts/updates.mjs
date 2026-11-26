@@ -1,6 +1,12 @@
 export const MODES = ['skip','icons','update'];
 const clone = v => JSON.parse(JSON.stringify(v));
-export function matchingItems(collection,data) {return collection.filter(i=>i.name===data.name && i.type===data.type);}
+export function matchingItems(collection,data) {
+  const level=data.flags?.dnd5e?.spellLevel?.value;
+  const match=/^(Cantrip|1st|2nd|3rd|[4-9]th) Spellscroll – (.+)$/.exec(data.name);
+  const generated=data.type==='consumable' && data.system?.type?.value==='scroll' && data.flags?.['coast-forge-importer']?.schemaVersion===1 && Number.isInteger(level) && level>=0 && level<=9 && match;
+  const legacy=generated ? `Spell Scroll: ${match[2]} (${level===0?'Cantrip':`Level ${level}`})` : null;
+  return collection.filter(i=>i.type===data.type && (i.name===data.name || (legacy && i.name===legacy && i.system?.type?.value==='scroll' && i.flags?.['coast-forge-importer']?.schemaVersion===1 && i.flags?.dnd5e?.spellLevel?.value===level)));
+}
 /** Updates only the chosen world template. Never propagates changes to actors. */
 export async function updateExisting(doc,data,mode,iconChanged,normalize=x=>x,effectIconPatches=[]) {
   if (!MODES.includes(mode)) throw new Error('Invalid update mode.');

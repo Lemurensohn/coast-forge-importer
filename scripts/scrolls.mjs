@@ -2,6 +2,11 @@ import { createExternalResolver } from './references.mjs';
 import { escapeHtml } from './schema.mjs';
 
 export const MAX_SCROLLS = 500;
+export function scrollName(spell, level) {
+  const prefix = ['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'][level];
+  if (!prefix) throw new Error('Invalid scroll level.');
+  return `${prefix} Spellscroll – ${spell}`;
+}
 const clone = value => JSON.parse(JSON.stringify(value));
 const obj = x => x !== null && typeof x === 'object' && !Array.isArray(x);
 const integerLevel = x => Number.isInteger(x) && x >= 0 && x <= 9;
@@ -98,7 +103,7 @@ export async function generateScrolls(requests,{packs,selection,createScroll,cha
     const doc=await resolve(request.spell,'spell',request.pack);
     const base=Number(doc.system.level);
     for (const level of expandLevels(request,base)) {
-      const name=`Spell Scroll: ${doc.name} (${level===0?'Cantrip':`Level ${level}`})`;
+      const name=scrollName(doc.name,level);
       if (seen.has(name)) throw new Error(`${name}: duplicate generated scroll; select one source.`);
       seen.add(name); plan.push({request,doc,base,level,name});
       if (plan.length>limit) throw new Error(`Maximum ${limit} generated scrolls per import. Split the file.`);

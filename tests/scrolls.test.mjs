@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {parseImport,buildItemData} from '../scripts/schema.mjs';
-import {generateScrolls,expandLevels,validateScrollRequests,scrollChallenge} from '../scripts/scrolls.mjs';
+import {generateScrolls,expandLevels,validateScrollRequests,scrollChallenge,scrollName} from '../scripts/scrolls.mjs';
 const table={0:{dc:13,bonus:5},3:{dc:15,bonus:7},5:{dc:17,bonus:9},7:{dc:18,bonus:10},9:{dc:19,bonus:11}};
 const copy=x=>structuredClone(x);
 function spell(name,level,pack,activities={a:{_id:'attack0000000001',type:'attack',name:'Attack',attack:{bonus:'0'},consumption:{spellSlot:true,targets:[]},duration:{override:false},damage:{parts:[{number:2,denomination:8,scaling:{mode:'whole',number:2}}]}}}) {
@@ -29,3 +29,6 @@ test('duplicate variant names stop before conversion',async()=>{const e=env();aw
 test('explicit followups have no item consumption; spent scroll retained',async()=>{const s=spell('X',3,'a',{a:{type:'utility',name:'Cast'},b:{type:'save',name:'Pulse'}});const r=await generateScrolls([{spell:'X',followUpActivities:['Pulse']}],env([s]));assert.equal(r.items[0].system.uses.autoDestroy,false);assert.equal(r.items[0].system.activities.a.consumption.targets.length,1);assert.equal(r.items[0].system.activities.b.consumption.targets.length,0);assert.match(r.warnings.join(' '),/Do not stack/);await assert.rejects(generateScrolls([{spell:'X',followUpActivities:['Missing']}],env([s])),/unknown follow-up/);});
 test('price override and image are explicit; source prices otherwise retained',async()=>{const r=await generateScrolls([{spell:'Cure Wounds',scrollLevels:[1,2],img:'my.webp',priceByLevel:{2:300}}],env());assert.equal(r.items[0].system.price.value,100);assert.equal(r.items[1].system.price.value,300);assert.equal(r.items[1].img,'my.webp');});
 test('invalid native output aborts rather than inventing a scroll',async()=>{await assert.rejects(generateScrolls([{spell:'Cure Wounds'}],{...env(),createScroll:async()=>null}),/no scroll/);});
+
+test('all scroll levels lead with the correct English ordinal, including cantrip',()=>{assert.deepEqual(Array.from({length:10},(_,i)=>scrollName('Cure Wounds',i)),['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'].map(x=>`${x} Spellscroll – Cure Wounds`));assert.throws(()=>scrollName('X',10));});
+test('generated names and description headings use level-first naming',async()=>{const r=await generateScrolls([{spell:'Cure Wounds',scrollLevels:'all'}],env());assert.deepEqual(r.items.map(i=>i.name),Array.from({length:9},(_,i)=>scrollName('Cure Wounds',i+1)));for(const i of r.items){assert.equal(buildItemData(i).name,i.name);assert.ok(i.system.description.value.includes(i.name));}const c=await generateScrolls([{spell:'Ray of Frost'}],env([spell('Ray of Frost',0,'a')]));assert.equal(c.items[0].name,'Cantrip Spellscroll – Ray of Frost');});
