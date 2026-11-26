@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "scrolls": [
+    { "spell": "Cure Wounds", "scrollLevels": [1, 3, 9] },
+    { "spell": "Fireball", "scrollLevels": [3, 5] },
+    { "spell": "Hold Person", "scrollLevels": [2, 4] },
+    { "spell": "Ray of Frost", "scrollLevels": "base" }
+  ]
+}

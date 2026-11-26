@@ -1,3 +1,4 @@
+import { generateScrolls, MAX_SCROLLS } from "./scrolls.mjs";
 import { PACK_SETTINGS, resolveReferences, referenceSources, hasDescriptionReferences } from "./references.mjs";
 import { MODES, matchingItems, updateExisting } from "./updates.mjs";
 import { planGrants, linkGrants } from "./grants.mjs";
@@ -73,7 +74,7 @@ async function askSource() {
     position: { width: Math.min(820, Math.max(300, globalThis.innerWidth - 32)) },
     content: `
       <div class="coast-forge-dialog">
-        <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
+        <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code> bzw. <code>scrolls</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
         <div class="form-group"><label for="coast-forge-file">Datei (.json oder .txt)</label>
           <input id="coast-forge-file" type="file" name="sourceFile" accept=".json,.txt,application/json,text/plain"></div>
         <p class="hint">Alternativ Importtext direkt einfügen:</p>
@@ -89,7 +90,7 @@ async function askSource() {
         <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
           <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
           <div class="form-group"><label>Condition Journals (Compendium / World Journal)</label><select name="journalPack">${packOptions('journalPack','JournalEntry')}</select></div>
-          <div class="form-group"><label>External Grant Items / Spell Links (mehrere möglich)</label>${renderPackPicker(referenceSources(game.packs, game.journal, "Item"), game.settings.get(MODULE_ID, "itemPack"))}<p class="hint">Einfach die gewünschten Compendiums anhaken. Ohne Treffer dort (oder ohne Auswahl) werden andere Item-Compendiums durchsucht. Mehrdeutige Treffer werden gemeldet, nicht geraten.</p></div>
+          <div class="form-group"><label>External Grant Items / Spell Links / Scroll Sources (mehrere möglich)</label>${renderPackPicker(referenceSources(game.packs, game.journal, "Item"), game.settings.get(MODULE_ID, "itemPack"))}<p class="hint">Einfach die gewünschten Compendiums anhaken. Ohne Treffer dort (oder ohne Auswahl) werden andere Item-Compendiums durchsucht. Mehrdeutige Treffer werden gemeldet, nicht geraten.</p></div>
         </details><p class="hint">Das Modul führt keine Makros aus. Nur vertrauenswürdige JSON und Compendiums verwenden.</p>
       </div>`,
     render: (_event, dialog) => bindPackPicker(dialog.element),
@@ -342,6 +343,19 @@ export async function openImporter() {
     const hasReferences = parsed.items.some(i=>i.effectRefs !== undefined || i.compendiumGrants !== undefined || hasDescriptionReferences(i));
     if (!isWorldDestination(entry.destination) && parsed.items.some(i=>i.compendiumGrants?.length)) throw new Error("Compendium grants require World Items.");
     const resolved = hasReferences ? await resolveReferences(parsed.items,entry.packSelections ?? {},game.packs,()=>foundry.utils.randomID(),game.journal) : {items:parsed.items,warnings:[]};
+    if (parsed.scrolls?.length) {
+      const cls = CONFIG.Item.documentClass;
+      const generated = await generateScrolls(parsed.scrolls, {
+        packs: game.packs, selection: entry.packSelections?.itemPack,
+        createScroll: typeof cls.createScrollFromSpell === "function" ? cls.createScrollFromSpell.bind(cls) : undefined,
+        challengeTable: CONFIG.DND5E.spellScrollValues,
+        limit: MAX_SCROLLS - resolved.items.length
+      });
+      const names = new Set(resolved.items.map(i=>i.name));
+      if (generated.items.some(i=>names.has(i.name))) throw new Error("Duplicate scroll name in items and scrolls.");
+      resolved.items.push(...generated.items);
+      resolved.warnings.push(...generated.warnings);
+    }
     const plans = planGrants(resolved.items);
     if (plans.length && !isWorldDestination(entry.destination)) throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(resolved.items);
@@ -357,6 +371,7 @@ export async function openImporter() {
       if (matches.length===1) row.existing=matches[0];
       if (plans.length && row.item.ref && matches.length && (matches.length!==1 || matches[0].flags?.[MODULE_ID]?.localRef!==row.item.ref)) throw new Error(`${row.data.name}: existing item does not match local reference.`);
     }
+    if (parsed.scrolls?.length && preview.some(p=>p.error)) throw new Error("Scroll import blocked: " + preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));
     if (mode==='update') {
       if (preview.some(p=>p.error)) throw new Error('Full update blocked: invalid item in preview.');
       parsed.warnings.unshift('Full update replaces existing system data and embedded effects; no automatic rollback. Back up the world.');

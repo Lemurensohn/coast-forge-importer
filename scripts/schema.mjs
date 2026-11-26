@@ -50,9 +50,13 @@ export function parseImport(text) {
   if (input.schemaVersion !== SCHEMA_VERSION) {
     throw new Error(`Unbekannte schemaVersion ${String(input.schemaVersion)}. Erwartet: ${SCHEMA_VERSION}.`);
   }
-  if (!Array.isArray(input.items) || input.items.length < 1) {
-    throw new Error("'items' muss eine nichtleere Liste sein.");
+  const scrolls = input.scrolls === undefined ? [] : input.scrolls;
+  if (!Array.isArray(scrolls) || scrolls.length > 500) throw new Error("'scrolls' muss eine Liste mit maximal 500 Einträgen sein.");
+  const items = input.items === undefined ? [] : input.items;
+  if (!Array.isArray(items) || (!items.length && !scrolls.length)) {
+    throw new Error("'items' oder 'scrolls' muss eine nichtleere Liste sein.");
   }
+  input.items = items;
   if (input.items.length > 100) throw new Error("Maximal 100 Items pro Import.");
   const warnings = [];
   const signatures = new Set();
@@ -106,7 +110,7 @@ export function parseImport(text) {
       warnings.push(`${item.name}: Klassen-/Subclass-Advancement wird noch nicht automatisch aufgebaut.`);
     }
   });
-  return { schemaVersion: SCHEMA_VERSION, items: input.items, warnings };
+  return { schemaVersion: SCHEMA_VERSION, items: input.items, warnings, ...(input.scrolls !== undefined ? {scrolls} : {}) };
 }
 /** Converts an approachable damage shorthand to the v5.2.5 DamageField structure. */
 export function normalizeDamagePart(part) {

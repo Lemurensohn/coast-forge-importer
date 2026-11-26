@@ -127,3 +127,33 @@ Der erste Importdialog hat einen eigenen vertikalen Scrollbereich (65vh), ein kl
 ## v0.1.10 — Active-Effect-Icon-Hotfix
 
 Die Vorprüfung verwendet eine getrennte Datenkopie. Beim Zuweisen von Effect-Icons werden neue Datenobjekte erzeugt, statt geschützte alte `icon`-Eigenschaften zu löschen. Alle bisherigen Importdateien und QA v2.11 bleiben gültig.
+
+## v0.1.11 — Bulk Spell Scroll Generation
+
+Upload a JSON with `schemaVersion: 1` and a `scrolls` array. `items` remains supported and may be used in the same file. Example:
+
+```json
+{
+  "schemaVersion": 1,
+  "scrolls": [
+    {"spell": "Cure Wounds", "scrollLevels": "all"},
+    {"spell": "Fireball", "scrollLevels": [3, 5, 9]},
+    {"spell": "Goodberry", "scrollLevels": "base"}
+  ]
+}
+```
+
+- `spell`: exact compendium spell name (same resolver as spell grants).
+- `scrollLevels`: `"base"` (default), `"all"` (base through level 9; cantrips only level 0), or a list of distinct levels. No automatic interpretation of whether upcasting is meaningful; choose the appropriate levels in the JSON.
+- `pack`: optional exact compendium collection ID to resolve an ambiguous name.
+- `img`: optional initial scroll artwork. Preview can override it.
+- `priceByLevel`: optional object mapping level strings to numeric GP prices, e.g. `{"3": 150, "5": 1500}`. Otherwise use the native template price, which may be unset/zero. No invented market price.
+- `followUpActivities`: optional list of exact source activity names that are not initial casts. Such activities do not consume another scroll. To keep them accessible, this scroll has one use but does not auto-destroy. Do not stack such scrolls; delete the spent item manually after the spell. Follow-ups require manual enforcement of the trigger and cast state.
+
+Select official 2024 and/or homebrew spell compendiums in **External Grant Items / Spell Links / Scroll Sources**. Missing/ambiguous spells and invalid requested levels block the preview before item creation. Duplicate expanded names are rejected. The cap is 500 expanded items per scroll import; legacy ordinary `items` limit remains 100. Use normal preview and destination selection. Names contain the exact scroll level to avoid confusing variants. No changes to source spells.
+
+The conversion calls D&D5e 5.2.5 `CONFIG.Item.documentClass.createScrollFromSpell(detachedSpellData, {}, config)` with `dialog:false`, fixed level and values from `CONFIG.DND5E.spellScrollValues`. This deliberately uses the detached conversion path, which copies activities and effects rather than referencing a live source spell. The native level template supplies rarity, weight and default price. Standard scrolls consume one item use and auto-destroy; no caster spell slot is consumed. Native scaling metadata is retained, and explicit `@item.level` references in copied activity data are replaced with the requested level. Known effect timers and macro hooks are stripped from copies; concentration rules and original spell duration text are preserved, while timed activity durations are changed to Special. External modules can still manage concentration and linked effects. Source spells with multiple activities must be reviewed: by default all activities are treated as alternative initial casts. Macro-dependent automation, summon/cast/enchant dependencies, caster-level-specific and non-damage scaling, repeated triggers, class-list eligibility and above-level casting checks need live/manual review. The generator cannot create mechanics absent from the source spell. No promise that all premium/source spells work identically.
+
+Test file: `examples/54-spell-scrolls-TEST.json` (8 variants). Check Cure Wounds healing, Fireball damage and fixed DC, Hold Person condition and target scaling, Ray of Frost attack and cantrip damage, consumption, and no timed Active Effect. Tests run on Node with simulated Foundry APIs, not a live server.
+
+Reference: https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/item.mjs (native scroll API); https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/config.mjs (scroll values).
