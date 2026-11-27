@@ -37,7 +37,7 @@ export function readPackSelection(value) {
   return [...new Set(value)];
 }
 const externalName = value => String(value).replace(/[’‘]/g,"'");
-const itemTypes = new Set(['feat','spell','weapon','equipment','consumable','tool','loot','container','class','subclass']);
+const itemTypes = new Set(['feat','spell','weapon','equipment','consumable','tool','loot','container','class','subclass','race']);
 export function createExternalResolver(packs, selection) {
   const preferred=readPackSelection(selection);
   const all=(typeof packs?.entries==='function' ? [...packs.entries()] : values(packs).map(p=>[p.collection,p]))

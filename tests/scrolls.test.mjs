@@ -1,7 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {parseImport,buildItemData} from '../scripts/schema.mjs';
-import {generateScrolls,expandLevels,validateScrollRequests,scrollChallenge,scrollName} from '../scripts/scrolls.mjs';
+import {generateScrolls as generateNativeScrolls,expandLevels,validateScrollRequests,scrollChallenge,scrollName} from '../scripts/scrolls.mjs';
+// Retain the existing regression suite for the explicitly requested legacy copied-scroll path.
+const generateScrolls=(requests,env)=>generateNativeScrolls(requests.map(r=>({...r,implementation:'copy'})),env);
 const table={0:{dc:13,bonus:5},3:{dc:15,bonus:7},5:{dc:17,bonus:9},7:{dc:18,bonus:10},9:{dc:19,bonus:11}};
 const copy=x=>structuredClone(x);
 function spell(name,level,pack,activities={a:{_id:'attack0000000001',type:'attack',name:'Attack',attack:{bonus:'0'},consumption:{spellSlot:true,targets:[]},duration:{override:false},damage:{parts:[{number:2,denomination:8,scaling:{mode:'whole',number:2}}]}}}) {
@@ -32,3 +34,56 @@ test('invalid native output aborts rather than inventing a scroll',async()=>{awa
 
 test('all scroll levels lead with the correct English ordinal, including cantrip',()=>{assert.deepEqual(Array.from({length:10},(_,i)=>scrollName('Cure Wounds',i)),['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'].map(x=>`${x} Spellscroll – Cure Wounds`));assert.throws(()=>scrollName('X',10));});
 test('generated names and description headings use level-first naming',async()=>{const r=await generateScrolls([{spell:'Cure Wounds',scrollLevels:'all'}],env());assert.deepEqual(r.items.map(i=>i.name),Array.from({length:9},(_,i)=>scrollName('Cure Wounds',i+1)));for(const i of r.items){assert.equal(buildItemData(i).name,i.name);assert.ok(i.system.description.value.includes(i.name));}const c=await generateScrolls([{spell:'Ray of Frost'}],env([spell('Ray of Frost',0,'a')]));assert.equal(c.items[0].name,'Cantrip Spellscroll – Ray of Frost');});
+
+test('default Cast scrolls link source UUID, use caster values and consume a single scroll, not a slot',async()=>{
+  const s=spell('Cure Wounds',1,'a'),before=copy(s.raw),e=env([s]);
+  const result=await generateNativeScrolls([{spell:s.name,scrollLevels:'all'}],e);
+  assert.equal(result.items.length,9);assert.deepEqual(s.raw,before);
+  for(const [i,raw] of result.items.entries()){
+    const item=buildItemData(raw),acts=Object.values(item.system.activities),a=acts[0];
+    assert.equal(acts.length,1);assert.equal(a.type,'cast');assert.equal(a._id.length,16);
+    assert.equal(a.spell.uuid,s.uuid);assert.equal(a.spell.level,i+1);assert.equal(a.spell.ability,'');
+    assert.equal(a.spell.challenge.override,false);assert.equal(a.spell.challenge.attack,undefined);assert.equal(a.spell.challenge.save,undefined);
+    assert.equal(a.spell.spellbook,false);assert.deepEqual(a.spell.properties,['vocal','somatic','material']);
+    assert.deepEqual(a.consumption,{spellSlot:false,targets:[{type:'itemUses',target:'',value:'1'}],scaling:{allowed:false,max:''}});
+    assert.equal(item.system.quantity,1);assert.deepEqual(item.system.uses,{max:'1',spent:0,recovery:[],autoDestroy:true});
+    assert.deepEqual(item.effects,[]);assert.equal(item.flags.dnd5e.spellLevel.value,i+1);assert.equal(item.flags.dnd5e.scaling,0);
+    assert.equal(e.calls[i].config.level,i+1);assert.deepEqual(e.calls[i].source.system.activities,{});assert.deepEqual(e.calls[i].source.effects,[]);
+    assert.match(item.system.description.value,/@UUID\[/);assert.match(item.system.description.value,/reader’s spellcasting values/);
+  }
+  assert.match(result.warnings.join(' '),/NOT sanitized/);
+});
+test('official Cast mode sets only fixed challenge values for actual scroll level',async()=>{
+  const r=await generateNativeScrolls([{spell:'Cure Wounds',scrollLevels:[1,9]}],{...env(),scalingMode:'official'});
+  assert.deepEqual(r.items.map(i=>Object.values(i.system.activities)[0].spell.challenge),[{override:true,attack:5,save:13},{override:true,attack:11,save:19}]);
+  assert.ok(r.items.every(i=>i.system.uses.autoDestroy && Object.values(i.system.activities)[0].type==='cast'));
+});
+test('per-request mode overrides dialog default; bad modes rejected',async()=>{
+  const r=await generateNativeScrolls([{spell:'Cure Wounds',scalingMode:'character'}],{...env(),scalingMode:'official'});
+  assert.equal(Object.values(r.items[0].system.activities)[0].spell.challenge.override,false);
+  assert.throws(()=>validateScrollRequests([{spell:'X',scalingMode:'wrong'}]));
+  await assert.rejects(generateNativeScrolls([{spell:'Cure Wounds'}],{...env(),scalingMode:'wrong'}),/Invalid scroll scaling mode/);
+});
+test('Cast cantrip remains level zero; fixed name and level-specific price override retained',async()=>{
+  const r=await generateNativeScrolls([{spell:'Ray of Frost',scrollLevels:'all',priceByLevel:{0:20},img:'custom.webp'}],env([spell('Ray of Frost',0,'a')]));
+  assert.equal(r.items.length,1);assert.equal(r.items[0].name,'Cantrip Spellscroll – Ray of Frost');assert.equal(r.items[0].system.price.value,20);assert.equal(r.items[0].img,'custom.webp');assert.equal(Object.values(r.items[0].system.activities)[0].spell.level,0);
+});
+test('Cast source duration override is manual, concentration preserved; original source effects untouched',async()=>{
+  const s=spell('X',1,'a'),before=copy(s.raw);
+  const r=await generateNativeScrolls([{spell:'X'}],env([s]));const a=Object.values(r.items[0].system.activities)[0];
+  assert.deepEqual(a.duration,{override:true,units:'spec',value:null,concentration:true});assert.deepEqual(s.raw,before);assert.equal(r.items[0].effects.length,0);assert.match(r.warnings.join(' '),/source timers\/macros/);
+});
+test('legacy follow-up requests explicitly retain old behavior; Cast cannot silently pretend to support followups',async()=>{
+  const s=spell('X',3,'a',{a:{type:'utility',name:'Cast'},b:{type:'save',name:'Pulse'}});
+  const r=await generateNativeScrolls([{spell:'X',followUpActivities:['Pulse']}],env([s]));assert.equal(r.items[0].system.uses.autoDestroy,false);assert.match(r.warnings.join(' '),/legacy copied/);
+  assert.throws(()=>validateScrollRequests([{spell:'X',implementation:'cast',followUpActivities:['Pulse']}]));
+});
+test('source activities with disabled slot consumption are explicitly warned about',async()=>{
+  const s=spell('X',1,'a',{a:{type:'utility',name:'Cast',consumption:{spellSlot:true,targets:[]}},b:{type:'utility',name:'Pulse',consumption:{spellSlot:false,targets:[]}}});
+  const r=await generateNativeScrolls([{spell:'X'}],env([s]));assert.match(r.warnings.join(' '),/native linked consumption may be skipped/);
+});
+
+test('all source activities skipping linked consumption are blocked, not imported as free scrolls',async()=>{
+ const s=spell('X',1,'a',{a:{type:'utility',name:'Cast',consumption:{spellSlot:false,targets:[]}}});const e=env([s]);
+ await assert.rejects(generateNativeScrolls([{spell:'X'}],e),/Native Cast would skip scroll consumption/);assert.equal(e.calls.length,0);
+});

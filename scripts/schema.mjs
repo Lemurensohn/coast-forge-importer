@@ -4,20 +4,20 @@
  */
 export const SCHEMA_VERSION = 1;
 export const ALLOWED_TYPES = new Set([
-  "feat", "spell", "weapon", "equipment", "consumable", "tool", "loot", "container", "class", "subclass"
+  "feat", "spell", "weapon", "equipment", "consumable", "tool", "loot", "container", "class", "subclass", "race"
 ]);
 const KIND_TO_TYPE = Object.freeze({
   feature: "feat", feat: "feat", maneuver: "feat", manoeuvre: "feat", invocation: "feat",
   spell: "spell", cantrip: "spell", weapon: "weapon", armor: "equipment",
   armour: "equipment", equipment: "equipment", gear: "equipment", consumable: "consumable",
   potion: "consumable", tool: "tool", loot: "loot", item: "loot", container: "container",
-  class: "class", subclass: "subclass"
+  class: "class", subclass: "subclass", race: "race", species: "race"
 });
 const DEFAULT_IMAGES = Object.freeze({
   feat: "icons/svg/book.svg", spell: "icons/svg/aura.svg", weapon: "icons/svg/sword.svg",
   equipment: "icons/svg/shield.svg", consumable: "icons/svg/potion.svg",
   tool: "icons/svg/item-bag.svg", loot: "icons/svg/item-bag.svg",
-  container: "icons/svg/item-bag.svg", class: "icons/svg/book.svg", subclass: "icons/svg/book.svg"
+  container: "icons/svg/item-bag.svg", class: "icons/svg/book.svg", subclass: "icons/svg/book.svg", race: "icons/svg/book.svg"
 });
 
 function isObject(value) {

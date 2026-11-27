@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Veyraki",
+      "kind": "species",
+      "ref": "veyraki",
+      "automation": "partial",
+      "description": "The Veyraki are an exceptionally rare humanoid species whose existence is largely unknown to the inhabitants of Ishtar. Although physically similar to humans, they possess a long, fur-covered prehensile tail, remarkable physical endurance, and an extraordinary metabolism.\n\nVeyraki retain their youthful appearance and physical capabilities for considerably longer than most humanoid species. A Veyraki in their fifties may appear physically indistinguishable from one in their twenties.\n\nLittle is known about their origins or original homeland. However, their unusual connection to a rare celestial phenomenon known as the Ember Moon suggests that their biology holds secrets even they may not fully understand.\n\nVeyraki Traits\n\nCreature Type: Humanoid\nSize: Medium\nSpeed: 30 feet\n\nLifespan: Veyraki can live for approximately 200 years. They reach physical maturity at around 20 years of age and retain their youthful appearance until approximately 70 years of age, after which visible physical aging gradually begins.\n\nAs a Veyraki, you have the following special traits.\n\nNatural Athleticism. You gain proficiency in the Athletics or Acrobatics skill (your choice).\n\nPrehensile Tail. You can use your tail to pick up or hold objects weighing no more than 10 pounds, open or close doors and containers, or perform similarly simple tasks. Your tail can't wield weapons or shields, activate magic items, perform the Somatic components of spells, or grant you additional attacks or actions.\n\nUnbroken Spirit. When you take damage that leaves you Bloodied without reducing you to 0 Hit Points, you can gain Temporary Hit Points equal to your character level plus your Constitution modifier (minimum of 1). No action is required. Once you use this trait, you can't use it again until you finish a Long Rest.\n\nVoracious Metabolism. By spending 10 minutes consuming 10 Rations, you can reduce your Exhaustion level by 1. Once you use this trait, you can't use it again until you finish a Long Rest.\n\nSensitive Tail. A creature that knows about your tail's vulnerability can specifically attempt to Grapple it if your tail is exposed. If the attempt succeeds, you have the Restrained condition instead of the Grappled condition until you escape or the creature releases your tail.\n\nYou can wrap your tail securely around your waist or torso to protect it. While secured in this way, your tail can't be targeted separately, but you can't use your Prehensile Tail trait.\n\nEmber Moon. Upon reaching physical maturity, your body becomes susceptible to the influence of the Ember Moon. Exposure to this rare celestial phenomenon can trigger an extraordinary physical transformation. The nature, duration, and consequences of this transformation are determined by the DM. You can't willingly activate this transformation through this trait.",
+      "system": {
+        "identifier": "veyraki",
+        "type": {
+          "value": "humanoid"
+        },
+        "movement": {
+          "walk": 30,
+          "units": "ft"
+        },
+        "advancement": [
+          {
+            "_id": "VeyrakiSize00000",
+            "type": "Size",
+            "level": 0,
+            "title": "Size",
+            "configuration": {
+              "sizes": [
+                "med"
+              ]
+            },
+            "value": {}
+          },
+          {
+            "_id": "VeyrakiSkill0000",
+            "type": "Trait",
+            "level": 0,
+            "title": "Natural Athleticism",
+            "configuration": {
+              "allowReplacements": false,
+              "choices": [
+                {
+                  "count": 1,
+                  "pool": [
+                    "skills:ath",
+                    "skills:acr"
+                  ]
+                }
+              ],
+              "grants": [],
+              "mode": "default"
+            },
+            "value": {}
+          },
+          {
+            "_id": "VeyrakiGrant0000",
+            "type": "ItemGrant",
+            "level": 0,
+            "title": "Veyraki Traits",
+            "configuration": {
+              "items": [],
+              "optional": false
+            },
+            "value": {}
+          }
+        ]
+      },
+      "grantLinks": [
+        {
+          "advancementId": "VeyrakiGrant0000",
+          "refs": [
+            "veyraki-natural-athleticism",
+            "veyraki-prehensile-tail",
+            "veyraki-unbroken-spirit",
+            "veyraki-voracious-metabolism",
+            "veyraki-sensitive-tail",
+            "veyraki-ember-moon"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Natural Athleticism",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-natural-athleticism",
+      "automation": "partial",
+      "description": "Veyraki Species Trait\n\nYou gain proficiency in the Athletics or Acrobatics skill (your choice).",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": []
+      },
+      "activities": [],
+      "effects": []
+    },
+    {
+      "name": "Prehensile Tail",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-prehensile-tail",
+      "automation": "manual",
+      "description": "Veyraki Species Trait\n\nYou can use your tail to pick up or hold objects weighing no more than 10 pounds, open or close doors and containers, or perform similarly simple tasks. Your tail can't wield weapons or shields, activate magic items, perform the Somatic components of spells, or grant you additional attacks or actions.",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": []
+      },
+      "activities": [],
+      "effects": []
+    },
+    {
+      "name": "Unbroken Spirit",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-unbroken-spirit",
+      "automation": "partial",
+      "description": "Veyraki Species Trait\n\nWhen you take damage that leaves you Bloodied without reducing you to 0 Hit Points, you can gain Temporary Hit Points equal to your character level plus your Constitution modifier (minimum of 1). No action is required. Once you use this trait, you can't use it again until you finish a Long Rest.",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": [],
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "activities": [
+        {
+          "type": "heal",
+          "name": "Unbroken Spirit",
+          "activation": {
+            "type": "special",
+            "value": 0,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "When damage leaves you Bloodied without reducing you to 0 HP, use this trait to gain Temporary HP equal to your character level + Constitution modifier (minimum 1). No action required. Once per Long Rest."
+          },
+          "healing": {
+            "number": 0,
+            "denomination": 0,
+            "bonus": "",
+            "types": [
+              "temphp"
+            ],
+            "custom": {
+              "enabled": true,
+              "formula": "max(1, @details.level + @abilities.con.mod)"
+            },
+            "scaling": {
+              "mode": "",
+              "number": null,
+              "formula": ""
+            }
+          }
+        }
+      ],
+      "effects": []
+    },
+    {
+      "name": "Voracious Metabolism",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-voracious-metabolism",
+      "automation": "partial",
+      "description": "Veyraki Species Trait\n\nBy spending 10 minutes consuming 10 Rations, you can reduce your Exhaustion level by 1. Once you use this trait, you can't use it again until you finish a Long Rest.",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": [],
+        "uses": {
+          "spent": 0,
+          "max": "1",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "activities": [
+        {
+          "type": "utility",
+          "name": "Voracious Metabolism",
+          "activation": {
+            "type": "minute",
+            "value": 10,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Spend 10 minutes consuming 10 Rations. Check and remove the 10 Rations manually, then reduce your Exhaustion level by 1 (minimum 0). Once per Long Rest."
+          }
+        }
+      ],
+      "effects": []
+    },
+    {
+      "name": "Sensitive Tail",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-sensitive-tail",
+      "automation": "manual",
+      "description": "Veyraki Species Trait\n\nA creature that knows about your tail's vulnerability can specifically attempt to Grapple it if your tail is exposed. If the attempt succeeds, you have the Restrained condition instead of the Grappled condition until you escape or the creature releases your tail.\n\nYou can wrap your tail securely around your waist or torso to protect it. While secured in this way, your tail can't be targeted separately, but you can't use your Prehensile Tail trait.",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": []
+      },
+      "activities": [],
+      "effects": []
+    },
+    {
+      "name": "Ember Moon",
+      "kind": "feature",
+      "classification": "species-feature",
+      "ref": "veyraki-ember-moon",
+      "automation": "manual",
+      "description": "Veyraki Species Trait\n\nUpon reaching physical maturity, your body becomes susceptible to the influence of the Ember Moon. Exposure to this rare celestial phenomenon can trigger an extraordinary physical transformation. The nature, duration, and consequences of this transformation are determined by the DM. You can't willingly activate this transformation through this trait.",
+      "system": {
+        "type": {
+          "value": "race",
+          "subtype": ""
+        },
+        "requirements": "Veyraki",
+        "properties": []
+      },
+      "activities": [],
+      "effects": []
+    }
+  ]
+}

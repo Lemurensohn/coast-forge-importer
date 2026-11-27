@@ -1,4 +1,4 @@
-# Coast Forge Importer – v0.1.5
+# Coast Forge Importer – v0.1.13
 
 Foundry VTT v13 / dnd5e 5.x (Referenz 5.2.5), D&D 2024. Midi-QOL und DAE können installiert bleiben. Die Automatisierung einzelner importierter Mechaniken ist jeweils in Foundry zu prüfen.
 
@@ -19,8 +19,8 @@ Repository: https://github.com/Lemurensohn/coast-forge-importer
 Manifest: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
 
 1. Bestehende Welt sichern. Die Version zunächst in einer Testwelt prüfen.
-2. Inhalt von `coast-forge-importer-github-source-v0.1.5.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
-3. GitHub-Release mit neuem Tag `v0.1.5` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.5.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
+2. Inhalt von `coast-forge-importer-github-source-v0.1.13.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
+3. GitHub-Release mit neuem Tag `v0.1.13` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.13.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
 4. Auf The Forge das Custom-Modul aktualisieren. Wenn der automatische Update-Check die Version noch nicht erkennt, dasselbe Manifest für den Update-/Installationsvorgang verwenden. Welt neu starten bzw. Browser neu laden und Modulversion prüfen.
 5. In Foundry als GM im Item-Verzeichnis **Coast Forge Import** öffnen. Alternativ im Script-Makro: `game.modules.get("coast-forge-importer").api.open();`
 6. JSON/TXT auswählen oder JSON-Text einfügen, Ziel wählen und auf **Vorschau prüfen** klicken. Pro Item optional **Bild wählen**, Bild auswählen, Vorschau kontrollieren und anschließend **Importieren**.
@@ -161,3 +161,20 @@ Reference: https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documen
 ## v0.1.12 — Level-first scroll names
 
 Generated scroll names now use `1st Spellscroll – Cure Wounds`, `2nd Spellscroll – Cure Wounds`, … `9th Spellscroll – Cure Wounds`; level zero uses `Cantrip Spellscroll – Ray of Frost`. No JSON changes. The duplicate check also recognizes existing generated v0.1.11 scrolls by their legacy name and matching level metadata in the chosen destination. Existing documents are not automatically renamed; the optional GM macro in `examples/rename-legacy-scrolls.js` renames only matching generated World Items without changing IDs or mechanics. Back up before running. Actor copies and compendiums are not changed.
+
+
+## v0.1.13 — UUID-linked Cast spellscrolls (current default; supersedes v0.1.11 conversion instructions)
+
+- Ordinary `scrolls` requests now create one native Cast Activity referring to the original compendium spell by UUID, with a fixed casting level. No need to change existing JSON. The native level-specific template is still obtained through the detached conversion API, but the copied activities and effects are discarded. Source documents are never modified.
+- In **Spellscroll Scaling**, choose **Character Scaling** (default: Cast challenge override off; the spell's native caster ability and actor rolls apply) or **Official Scroll Scaling** (Cast challenge override on; fixed attack and DC by scroll level). Optional per-request `"scalingMode":"character"` or `"official"` overrides the dialog. This changes attack and save values only; native source formulas and explicit spell abilities/classes may still apply, so review custom spells.
+- Every ordinary Cast scroll has one item use, no recovery, auto-destroy enabled, a single item-use consumption target, and no spell-slot consumption. Cast level is fixed; no extra level selection. Spellbook display is off; use the item itself. Do not uncheck resource consumption in Foundry. Native source spell activities must enable `consumption.spellSlot` for the initial cast: D&D5e 5.2.5 replaces slot consumption with linked item consumption; when the source activity disables it, native consumption can be skipped. All-disabled sources are blocked. Mixed/multiple activities are warned about; verify which one is initial. No additional runtime hooks are installed.
+- Use only accessible source compendiums. Linked spells retain their effects, flags, macros, activity overrides and mechanics. No new timer is installed; timed spell-level duration is overridden to Special while concentration remains required. Source effects and activity-level durations are NOT sanitized by the linked approach. Check and remove source timers manually as needed. Source-dependent effects/recurring activities may need manual management after the scroll is consumed; do not assume the temporary cached spell remains accessible.
+- Compatibility exception: an explicit nonempty `followUpActivities` request from v0.1.12 retains its former copied-scroll behavior (fixed values, spent scroll remains for follow-ups). Explicit `"implementation":"copy"` selects the same legacy path; `"implementation":"cast"` rejects nonempty follow-ups. `scalingMode:character` is incompatible with copy. This is not the default and is not exposed as a regular UI option.
+- Existing world scrolls: reimport same JSON into the original folder with **Update Existing Items** to replace old activities/effects while retaining UUID and image unless changed. This is a full update; back up first. Actor copies are unaffected; replace them separately. Skip Existing will not convert existing items. No automatic migration or GitHub publication.
+- Test `examples/64-linked-scrolls-TEST.json`: Scorching Ray (2,9), Cure Wounds (1,9), Fireball (3,5). On an actor, check Character Scaling, fixed level, healing/damage scaling and consumption, especially multiple rays and a stack of 2. Repeat in Official mode on separate test items. Test cancellation, compare before/after spell slots, and try a character with no high-level slots. Also check custom source spells with effects/recurring actions. Node mocks test payloads and importer flow, not actual casting in Foundry/Midi-QOL.
+
+Source references (5.2.5): https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/data/activity/cast-data.mjs ; https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/activity/cast.mjs ; https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/activity/mixin.mjs ; https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/item.mjs .
+
+## v0.1.14 — Species
+
+Use `kind: "species"` or `type: "race"` for native Species items. Use `system.type.value: "race"` for child feat items, and native `system.movement`, creature type, level-0 Size/Trait/ItemGrant advancements on the Species. Local `grantLinks` resolve after all World Items are created. Import into a World Item folder, then drag the Species onto a character. See `examples/65-veyraki-species.json`. Live advancement flow is not covered by Node tests.

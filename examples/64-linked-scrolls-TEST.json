@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scrolls": [
+    {
+      "spell": "Scorching Ray",
+      "scrollLevels": [
+        2,
+        9
+      ]
+    },
+    {
+      "spell": "Cure Wounds",
+      "scrollLevels": [
+        1,
+        9
+      ]
+    },
+    {
+      "spell": "Fireball",
+      "scrollLevels": [
+        3,
+        5
+      ]
+    }
+  ]
+}

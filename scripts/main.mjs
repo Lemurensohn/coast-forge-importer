@@ -86,6 +86,7 @@ async function askSource() {
             <optgroup label="Actors">${options}</optgroup>
           </select></div>
         <div class="form-group"><label>Existing Items</label><select name="mode"><option value="skip">Skip Existing (Standard)</option><option value="icons">Update Icons Only</option><option value="update">Update Existing Items (nur Welt-Items)</option></select></div>
+        <div class="form-group"><label>Spellscroll Scaling (nur Scrolls)</label><select name="scrollScaling"><option value="character">Character Scaling – Werte des Anwenders (Standard)</option><option value="official">Official Scroll Scaling – feste Scroll-Werte</option></select></div>
         <p class="hint">Vollupdate ersetzt Regeln, Activities, Effects und Advancements; UUID bleibt erhalten. Keine automatische Aktualisierung von Actor-Kopien.</p>
         <details><summary>Compendium-Referenzen (einmal einstellen)</summary>
           <div class="form-group"><label>Condition Effects (Items)</label><select name="effectPack">${packOptions('effectPack','Item')}</select></div>
@@ -104,7 +105,8 @@ async function askSource() {
         const mode = form.elements.namedItem("mode")?.value ?? "skip";
         const packSelections = Object.fromEntries(Object.keys(PACK_SETTINGS).map(key=>[key,form.elements.namedItem(key)?.value ?? ""]));
         packSelections.itemPack = JSON.stringify(selectedPacks(form));
-        return { text, destination, mode, packSelections };
+        const scrollScaling = form.elements.namedItem("scrollScaling")?.value ?? "character";
+        return { text, destination, mode, packSelections, scrollScaling };
       }
     },
     rejectClose: false
@@ -349,6 +351,7 @@ export async function openImporter() {
         packs: game.packs, selection: entry.packSelections?.itemPack,
         createScroll: typeof cls.createScrollFromSpell === "function" ? cls.createScrollFromSpell.bind(cls) : undefined,
         challengeTable: CONFIG.DND5E.spellScrollValues,
+        scalingMode: entry.scrollScaling ?? "character",
         limit: MAX_SCROLLS - resolved.items.length
       });
       const names = new Set(resolved.items.map(i=>i.name));
