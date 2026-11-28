@@ -96,11 +96,19 @@ function addManagerButton(app,html){
   target.prepend(button);
 }
 export function registerSummonManager(){
-  Hooks.on('renderApplicationV2',addManagerButton);
-  // Hooks.call is synchronous. Cancel the ordinary workflow and open the manager asynchronously.
-  Hooks.on('dnd5e.preUseActivity',activity=>{if(!managed(activity))return;void run(activity).catch(notifyError);return false;});
-  // Prevent a stale chat button from creating free additional managed units.
-  Hooks.on('dnd5e.preSummon',(activity,profile,options)=>{if(!managed(activity))return;const p=sessions.get(options);if(!p||p.activityUuid!==activity.uuid||canvas.scene?.id!==p.scene){ui.notifications.warn('Coast Forge: use the managed Summon Activity instead.');return false;}});
-  Hooks.on('dnd5e.preSummonToken',(activity,profile,data,options)=>{if(!managed(activity))return;const p=sessions.get(options);if(!p||p.activityUuid!==activity.uuid||canvas.scene?.id!==p.scene)return false;try{applyScaling(p.config,profile,p.choice,p.snap,data);}catch(e){p.error=e;return false;}});
+  // Registration failure must not leave a partially active runtime behind.
+  const registered=[];
+  const on=(name,handler)=>{const id=Hooks.on(name,handler);registered.push([name,id??handler]);};
+  try{
+    on('renderApplicationV2',addManagerButton);
+    // Hooks.call is synchronous. Cancel the ordinary workflow and open the manager asynchronously.
+    on('dnd5e.preUseActivity',activity=>{if(!managed(activity))return;void run(activity).catch(notifyError);return false;});
+    // Prevent a stale chat button from creating free additional managed units.
+    on('dnd5e.preSummon',(activity,profile,options)=>{if(!managed(activity))return;const p=sessions.get(options);if(!p||p.activityUuid!==activity.uuid||canvas.scene?.id!==p.scene){ui.notifications.warn('Coast Forge: use the managed Summon Activity instead.');return false;}});
+    on('dnd5e.preSummonToken',(activity,profile,data,options)=>{if(!managed(activity))return;const p=sessions.get(options);if(!p||p.activityUuid!==activity.uuid||canvas.scene?.id!==p.scene)return false;try{applyScaling(p.config,profile,p.choice,p.snap,data);}catch(e){p.error=e;return false;}});
+  }catch(error){
+    for(const [name,id] of registered.reverse())try{Hooks.off(name,id);}catch(cleanup){console.error('Coast Forge | Summon hook cleanup failed; reload required.',cleanup);}
+    throw error;
+  }
 }
 export const openSummonManager=activity=>run(activity);

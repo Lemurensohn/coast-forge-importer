@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "name": "Coast Forge — Golden Guard (AURA TEST)",
+      "kind": "feature",
+      "automation": "partial",
+      "description": "While this test aura is enabled, you and allied creatures within 5 feet times your Proficiency Bonus gain a bonus to all saving throws equal to your Charisma modifier (minimum +1). Multiple copies of the aura do not stack; use the highest bonus. Manually enable or disable this test aura.",
+      "system": {
+        "type": {
+          "value": "other"
+        },
+        "source": {
+          "rules": "2024"
+        }
+      },
+      "effects": [
+        {
+          "name": "Golden Guard (TEST)",
+          "transfer": true,
+          "disabled": true,
+          "description": "<p>While this test aura is enabled, you and allied creatures within 5 feet times your Proficiency Bonus gain a bonus to all saving throws equal to your Charisma modifier (minimum +1). Multiple copies of the aura do not stack; use the highest bonus. Manually enable or disable this test aura.</p>",
+          "changes": [
+            {
+              "key": "system.bonuses.abilities.save",
+              "mode": 2,
+              "value": "max(1, @abilities.cha.mod)",
+              "priority": 20
+            }
+          ],
+          "aura": {
+            "radius": "5 * @prof",
+            "targets": "allies",
+            "includeSelf": true,
+            "color": "#D4AF37",
+            "opacity": 0.25,
+            "evaluateSource": true,
+            "bestFormula": "max(1, @abilities.cha.mod)",
+            "stack": false
+          },
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coast Forge — Crimson Dread (AURA TEST)",
+      "kind": "feature",
+      "automation": "partial",
+      "description": "While this test aura is enabled, hostile creatures within 30 feet of you take a -2 penalty to all saving throws. The source is not affected. Manually enable or disable this test aura.",
+      "system": {
+        "type": {
+          "value": "other"
+        },
+        "source": {
+          "rules": "2024"
+        }
+      },
+      "effects": [
+        {
+          "name": "Crimson Dread (TEST)",
+          "transfer": true,
+          "disabled": true,
+          "description": "<p>While this test aura is enabled, hostile creatures within 30 feet of you take a -2 penalty to all saving throws. The source is not affected. Manually enable or disable this test aura.</p>",
+          "changes": [
+            {
+              "key": "system.bonuses.abilities.save",
+              "mode": 2,
+              "value": "-2",
+              "priority": 20
+            }
+          ],
+          "aura": {
+            "radius": 30,
+            "targets": "enemies",
+            "includeSelf": false,
+            "color": "#FF3B30",
+            "opacity": 0.2
+          },
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coast Forge — Violet Field (AURA TEST)",
+      "kind": "feature",
+      "automation": "partial",
+      "description": "While this test aura is enabled, every other creature within 10 feet of you, regardless of disposition, gains a +1 bonus to Armor Class. The source is not affected. Manually enable or disable this test aura.",
+      "system": {
+        "type": {
+          "value": "other"
+        },
+        "source": {
+          "rules": "2024"
+        }
+      },
+      "effects": [
+        {
+          "name": "Violet Field (TEST)",
+          "transfer": true,
+          "disabled": true,
+          "description": "<p>While this test aura is enabled, every other creature within 10 feet of you, regardless of disposition, gains a +1 bonus to Armor Class. The source is not affected. Manually enable or disable this test aura.</p>",
+          "changes": [
+            {
+              "key": "system.attributes.ac.bonus",
+              "mode": 2,
+              "value": "1",
+              "priority": 20
+            }
+          ],
+          "aura": {
+            "radius": 10,
+            "targets": "any",
+            "includeSelf": false,
+            "color": "#A06BFF",
+            "opacity": 0.15
+          },
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coast Forge — Blue Ward (ACTIVITY TEST)",
+      "kind": "feature",
+      "automation": "partial",
+      "description": "As a Bonus Action, you can emanate a 60-foot aura for 1 minute. You and friendly creatures within the aura gain +2 Armor Class. Once used, this feature cannot be used again until you finish a Long Rest.",
+      "system": {
+        "type": {
+          "value": "other"
+        },
+        "source": {
+          "rules": "2024"
+        },
+        "uses": {
+          "max": "1",
+          "spent": 0,
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "effects": [
+        {
+          "name": "Blue Ward (TEST)",
+          "transfer": false,
+          "disabled": false,
+          "description": "<p>As a Bonus Action, you can emanate a 60-foot aura for 1 minute. You and friendly creatures within the aura gain +2 Armor Class. Once used, this feature cannot be used again until you finish a Long Rest.</p>",
+          "changes": [
+            {
+              "key": "system.attributes.ac.bonus",
+              "mode": 2,
+              "value": "2",
+              "priority": 20
+            }
+          ],
+          "aura": {
+            "radius": 60,
+            "targets": "allies",
+            "includeSelf": true,
+            "color": "#4DA3FF",
+            "opacity": 0.15
+          },
+          "flags": {
+            "dae": {
+              "showIcon": true
+            }
+          },
+          "_id": "AuraBlueWard0001"
+        }
+      ],
+      "activities": [
+        {
+          "name": "Activate Blue Ward",
+          "type": "utility",
+          "activation": {
+            "type": "bonus",
+            "cost": 1
+          },
+          "range": {
+            "units": "self",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "self",
+              "count": "1",
+              "choice": false
+            },
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "effects": [
+            {
+              "_id": "AuraBlueWard0001",
+              "onSave": false
+            }
+          ],
+          "description": {
+            "chatFlavor": "Apply the aura to yourself. Allies gain +2 AC within 60 ft. Manually remove the source aura from the actor after 1 minute. If the custom effect is not applied by Midi-QOL, use the effect application control or apply the configured aura manually; do not consume a second use."
+          }
+        }
+      ]
+    }
+  ]
+}

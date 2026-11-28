@@ -1,3 +1,4 @@
+import {verifyAuraTypes,auraEffectsIn} from "./auras.mjs";
 /** Native world NPC imports. No arbitrary code, runtime hooks, or automatic timers. */
 import {buildItemData, escapeHtml} from './schema.mjs';
 const SCOPE='coast-forge-importer';
@@ -101,6 +102,7 @@ export async function createPlannedActors(rows,{getActors,getFolders,destination
     try{
       const doc=await createActor({...data,folder:folder.id});
       if(doc?.uuid!==row.uuid) throw new Error(`expected ${row.uuid}, got ${doc?.uuid??'no UUID'}`);
+      if(auraEffectsIn([data]).length)verifyAuraTypes(data,doc?.toObject?.());
       created.push(row.spec.name);
     }catch(error){throw new Error(`Actor ${row.spec.name}: ${error.message}. Already created: ${created.join(', ')||'none'}. No automatic rollback; Items not imported.`);}
   }

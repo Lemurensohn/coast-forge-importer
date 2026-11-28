@@ -1,4 +1,5 @@
-import {registerSummonManager, openSummonManager} from "./summon-manager.mjs";
+import {startSummonRuntime} from "./runtime.mjs";
+import {checkAuraDependency,verifyAuraTypes,auraEffectsIn} from "./auras.mjs";
 import { findActorFolder, DEFAULT_ACTOR_FOLDER, planActors, actorPreview, resolveSummonRefs, verifyExistingSummons, createPlannedActors } from "./actors.mjs";
 import { generateScrolls, MAX_SCROLLS } from "./scrolls.mjs";
 import { PACK_SETTINGS, resolveReferences, referenceSources, hasDescriptionReferences } from "./references.mjs";
@@ -124,7 +125,8 @@ function preflight(items) {
       const data = buildItemData(item, () => foundry.utils.randomID());
       // Foundry may add non-configurable migration accessors to its input.
       // Validate a detached copy, never the editable import payload.
-      new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(data)));
+      const validated = new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(data)));
+      if(auraEffectsIn([data]).length) verifyAuraTypes(data,validated.toObject());
       results.push({ item, data, error: null });
     } catch (error) {
       results.push({ item, data: null, error: String(error?.message ?? error) });
@@ -160,9 +162,10 @@ async function confirmPreview(preview, warnings, destination, mode = "skip", act
             <div class="coast-forge-effect-buttons"><button type="button" class="coast-forge-effect-choose" ${choice.mode==='custom'?'':'hidden'}><i class="fa-solid fa-image"></i> Bild wählen</button><button type="button" class="coast-forge-effect-reset" disabled>Reset</button></div>
           </div></div>`;
       }).join('')}</details>` : '';
+    const auraSummary=(data? auraEffectsIn([data]):[]).map(e=>`<div class="hint">Aura: ${escapeHtml(e.name)} · ${escapeHtml(e.system?.distanceFormula??"?")} ft · ${escapeHtml(({"1":"Allies","-1":"Enemies","0":"Any"})[e.system?.disposition]??"?")} · ${e.system?.applyToSelf?"Self":"No self"} · ${escapeHtml(e.system?.color??"")}</div>`).join("");
     return `<tr data-coast-forge-row="${index}">
       <td>${iconCell}</td>
-      <td>${escapeHtml(item.name)}${effectCell}</td>
+      <td>${escapeHtml(item.name)}${auraSummary}${effectCell}</td>
       <td>${escapeHtml(item.type ?? item.kind ?? "")}</td>
       <td>${item.activities?.length ?? Object.keys(item.system?.activities ?? {}).length}</td>
       <td>${effectList.length || data?.effects?.length || item.effects?.length || 0}</td>
@@ -301,15 +304,20 @@ async function performImport(preview, destination, plans = [], mode = "skip", ac
           if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
           documents.set(item.ref, matches[0]);
         }
-        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(d))).toObject(),effectIconPatches)) updated.push(item.name);
+        if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(d))).toObject(),effectIconPatches)) {
+          if(mode==="update"&&auraEffectsIn([data]).length)verifyAuraTypes(data,matches[0].toObject());
+          updated.push(item.name);
+        }
         else skipped.push(item.name);
         if(actorResult) verifyExistingSummons(matches[0],data);
         continue;
       }
       if (actor) {
-        await actor.createEmbeddedDocuments("Item", [data]);
+        const created=await actor.createEmbeddedDocuments("Item", [data]);
+        if(auraEffectsIn([data]).length)verifyAuraTypes(data,created?.[0]?.toObject?.());
       } else {
         const created = await Item.implementation.createDocuments([{ ...data, folder: folder.id }]);
+        if(auraEffectsIn([data]).length)verifyAuraTypes(data,created?.[0]?.toObject?.());
         if(actorResult) { if(!created?.[0]) throw new Error("World Item creation did not return a document."); verifyExistingSummons(created[0],data); }
         if (plans.length && item.ref) documents.set(item.ref, created?.[0]);
       }
@@ -377,10 +385,12 @@ export async function openImporter() {
       plan.spec={...plan.spec,items:embedded.items};
       resolved.warnings.push(...embedded.warnings);
     }
-    const actorRows = actorPreview(actorPlans,()=>foundry.utils.randomID(),data=>new CONFIG.Actor.documentClass(data));
+    parsed.warnings.push(...checkAuraDependency([...resolved.items,...actorPlans.map(p=>p.spec)],game.modules,CONFIG.ActiveEffect?.dataModels));
+    const actorRows = actorPreview(actorPlans,()=>foundry.utils.randomID(),data=>{const doc=new CONFIG.Actor.documentClass(JSON.parse(JSON.stringify(data)));if(auraEffectsIn([data]).length)verifyAuraTypes(data,doc.toObject());return doc;});
     const plans = planGrants(resolved.items);
     if (plans.length && !isWorldDestination(entry.destination)) throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(resolved.items);
+    if(preview.some(p=>p.error&&auraEffectsIn([p.item]).length))throw Error("Aura preflight failed: "+preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));
     parsed.warnings.push(...resolved.warnings);
     const folder = isWorldDestination(entry.destination) ? findWorldFolder(entry.destination,game.folders) : null;
     const collection = isWorldDestination(entry.destination) ? (folder ? game.items.contents.filter(i=>i.folder?.id===folder.id) : []) : game.actors.get(entry.destination)?.items.contents ?? [];
@@ -427,6 +437,7 @@ export async function openImporter() {
   } catch (error) { notifyError(error); }
 }
 Hooks.once("init",()=>{
+  game.settings.register(MODULE_ID,"advancedSummoningEnabled",{name:"Advanced Summoning",hint:"Optional runtime. Requires reload. When disabled, managed features fall back to native summoning without Coast Forge scaling, caps or batch management. Use only ordinary native summon features in this mode.",scope:"world",config:true,type:Boolean,default:true,requiresReload:true});
   for (const key of Object.keys(PACK_SETTINGS)) game.settings.register(MODULE_ID,key,{scope:"world",config:false,type:String,default:""});
 });
 Hooks.on("renderItemDirectory", addDirectoryButton);
@@ -438,13 +449,14 @@ Hooks.on("renderApplicationV2", (app, html) => {
   if (isItemDirectoryApp(app)) addDirectoryButton(app, html);
 });
 Hooks.on("renderSidebar", addButtonFromSidebar);
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   if (game.system?.id !== "dnd5e") return;
-  registerSummonManager();
+  let runtime={status:"starting",manage:null};
   const module = game.modules.get(MODULE_ID);
   if (module) module.api = Object.freeze({
     open: openImporter,
-    manageSummons: openSummonManager,
+    manageSummons: (...args) => {if(!runtime.manage)throw Error(`Advanced Summoning: ${runtime.status}`);return runtime.manage(...args);},
+    get summonRuntimeStatus(){return runtime.status;},
     parse: parseImport,
     build: (spec) => buildItemData(spec, () => foundry.utils.randomID())
   });
@@ -453,4 +465,5 @@ Hooks.once("ready", () => {
     addButtonFromSidebar(ui?.sidebar, ui?.sidebar?.element);
     console.info(`${TAG} | Bereit. Öffnen per game.modules.get("${MODULE_ID}").api.open()`);
   }
+  runtime=await startSummonRuntime({enabled:game.settings.get(MODULE_ID,"advancedSummoningEnabled"),report:error=>{console.error(`${TAG} | Advanced Summoning startup failed; importer remains available.`,error);if(game.user?.isGM)ui.notifications.error("Coast Forge: Advanced Summoning konnte nicht gestartet werden. Der Importer bleibt verfügbar.");}});
 });

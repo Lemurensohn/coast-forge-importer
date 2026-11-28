@@ -1,4 +1,4 @@
-# Coast Forge Importer – v0.1.13
+# Coast Forge Importer – v0.2.2
 
 Foundry VTT v13 / dnd5e 5.x (Referenz 5.2.5), D&D 2024. Midi-QOL und DAE können installiert bleiben. Die Automatisierung einzelner importierter Mechaniken ist jeweils in Foundry zu prüfen.
 
@@ -19,8 +19,8 @@ Repository: https://github.com/Lemurensohn/coast-forge-importer
 Manifest: https://github.com/Lemurensohn/coast-forge-importer/releases/latest/download/module.json
 
 1. Bestehende Welt sichern. Die Version zunächst in einer Testwelt prüfen.
-2. Inhalt von `coast-forge-importer-github-source-v0.1.13.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
-3. GitHub-Release mit neuem Tag `v0.1.13` erstellen. Die separate `module.json` und `coast-forge-importer-v0.1.13.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
+2. Inhalt von `coast-forge-importer-github-source-v0.2.2.zip` in das vorhandene GitHub-Repository übernehmen (Dateien zusammenführen/überschreiben, nicht das Repository löschen). Vorhandene ältere Tests, Beispiele, IMPORT_FORMAT.md und QA-Dokumentation beibehalten. `module.json` gehört ins Repository-Stammverzeichnis.
+3. GitHub-Release mit neuem Tag `v0.2.2` erstellen. Die separate `module.json` und `coast-forge-importer-v0.2.2.zip` als Release-Assets anhängen, dann veröffentlichen. Die Release-ZIP nicht erneut komprimieren: das Manifest befindet sich bereits im Archiv-Stammverzeichnis.
 4. Auf The Forge das Custom-Modul aktualisieren. Wenn der automatische Update-Check die Version noch nicht erkennt, dasselbe Manifest für den Update-/Installationsvorgang verwenden. Welt neu starten bzw. Browser neu laden und Modulversion prüfen.
 5. In Foundry als GM im Item-Verzeichnis **Coast Forge Import** öffnen. Alternativ im Script-Makro: `game.modules.get("coast-forge-importer").api.open();`
 6. JSON/TXT auswählen oder JSON-Text einfügen, Ziel wählen und auf **Vorschau prüfen** klicken. Pro Item optional **Bild wählen**, Bild auswählen, Vorschau kontrollieren und anschließend **Importieren**.
@@ -271,3 +271,52 @@ Tier selection uses actual class level; PB and AC are the character's prepared v
 At level 14 choose Fire Vanguard, Cold Guardian and Lightning Artillery, each separately sized. Verify one feature use, no slot, correct attack/DC, all six base saves +5, damage types and native damage rolls including save half damage. Confirm source NPCs remain unchanged. Try a fourth summon (blocked), dismiss one (no refund), resummon one (one use). Repeat with second caster and different INT, then abort placement of the second token in a two-unit batch (no net tokens or cost if rollback succeeds). Test native old fixture 71 and normal linked spellscroll regression. Test player permissions and Midi-QOL attack/save/damage workflows. Native bonus action, range and movement are still manually enforced. Shared specialized resources, Grand Simulation and protective auras, actual damage reduction, fragment integration, initiative order and armament manager are future steps. The rule duration is 1 hour; manual dismissal only. This is a summons test, not the complete Tactician subclass.
 
 Source review: D&D5e 5.2.5 `module/documents/activity/summon.mjs` (native `placeSummons`, `preSummon`, `preSummonToken`, `getTokenData`), `module/documents/activity/mixin.mjs` (`preUseActivity`), `module/data/activity/summon-data.mjs`, `module/data/actor/templates/common.mjs`, `attributes.mjs`, and `module/data/shared/uses-field.mjs` at https://github.com/foundryvtt/dnd5e/tree/release-5.2.5 . Local Node tests are not a real Foundry server; native delta merge, GUI, player permissions and Midi-QOL integration must be verified live.
+
+## v0.2.2 — Stability & Aura Integration
+
+**Foundry v13, D&D5e 5.2.5, Aura Effects 1.5.2.** Aura Effects is optional and is not bundled or installed by Coast Forge. Install via Foundry's module manager or the version-specific manifest https://github.com/roth-michael/Aura-Effects/releases/download/1.5.2/module.json . Enable it in the test world alongside Midi-QOL/DAE. Do not install the 2.x version intended for Foundry v14. At least one active GM is required for Aura Effects' recipient application. Do not confuse it with Active Auras.
+
+### Stability boundary
+
+The importer core and the declarative builders do not register movement or attack hooks for auras. Aura Effects owns all aura behavior and drawing. World setting **Advanced Summoning** (enabled by default, reload required) independently enables the existing summon manager. The manager is dynamically loaded after core initialization; startup errors are reported and its partial hook registration is cleaned up where possible. Normal Item, Actor, Cast and native Summon imports do not require Aura Effects or the Advanced Summoning runtime. Managed items require the runtime for their custom mechanics. If disabled, their native Activities remain present, but native fallback **does not enforce custom scaling, mixed-profile selection, capacity or batch management**. Use ordinary native summon items only in that mode, or re-enable the runtime. No automatic migration or repair of prior documents. With Aura Effects disabled, do not use imported custom aura documents; deactivate them and clean up recipient copies before disabling that external module. No automatic deletion of stored effects or third-party documents. Back up the world before any module update.
+
+### Aura JSON format (schemaVersion 1)
+
+Add `aura` to any normal `effects[]` entry (Item, embedded NPC Item, or direct NPC effect). Use ordinary `changes`, `statuses`, `transfer`, `disabled`, `img` and `_id`. No additional root section or scripts. The builder translates the shorthand to the external module's real `type: "auraeffects.aura"`, `system` and `flags.auraeffects.originalType: "base"`. The dependency and data-model registration are checked **before previews/writes**, including resolved compendium effects. Only version 1.5.2 is currently supported. The importer checks native serialization before writes and verifies the returned aura type and key configuration after creation/update. A post-write verification failure is reported; existing import rollback limitations still apply. The adapter does not replace unsupported aura effects with global buffs.
+
+```json
+{
+  "name": "Golden Guard",
+  "transfer": true,
+  "disabled": true,
+  "changes": [{"key":"system.bonuses.abilities.save","mode":2,"value":"max(1, @abilities.cha.mod)","priority":20}],
+  "aura": {
+    "radius":"5 * @prof", "targets":"allies", "includeSelf":true,
+    "color":"#D4AF37", "opacity":0.25, "showRadius":true,
+    "evaluateSource":true, "stack":false,
+    "bestFormula":"max(1, @abilities.cha.mod)", "collisionTypes":["move"]
+  },
+  "flags":{"dae":{"showIcon":true}}
+}
+```
+
+- `radius`: positive numeric distance in scene units or deterministic roll formula. Use existing source roll-data fields and test at actual character levels. No dice or executable scripts; syntax/available paths still need real Foundry validation.
+- `targets`: `allies` (matching friendly/hostile disposition), `enemies` (opposite), `any` (all dispositions). `includeSelf` defaults true for allies, false otherwise; cannot set true for enemies. Neutral/Secret do not count as allies/enemies. Disposition is relative to the source token, not player ownership.
+- `color`: hex RGB; default blue allies, red enemies, gold any. `opacity`: 0–1, default 0.25. `showRadius`: true by default. `collisionTypes`: default movement-blocking walls (`["move"]`); `[]` for no wall collision; optional `sight`, `light`, `sound`.
+- `evaluateSource`: true by default, replaces source roll-data references before application. Aura Effects 1.5.2 does source replacement with DAE enabled regardless of this toggle. Already applied recipient effects may not rescale until removed/reapplied; disable/re-enable the aura when source stats change. `stack`: false by default; `bestFormula` optional, determines the strongest same-name aura. Different names may stack. `disableOnHidden`: true by default. Aura Effects controls distance and visualization details.
+- Manual duration only. For manual toggle use transfer true and initially disabled; for self-activation use transfer false, disabled false and a self Utility Activity linked to its ID with native uses/recovery. Rule duration remains in the description and chat guidance; no duration or repeat flags. Raw imported aura scripts, combat-only auto-activation, timer and macro changes are rejected. No automatic behavior selection, movement, reactions, or target choice. Selected-creature filters, owner-only summons, stationary areas (Color Mural), DR and full Grand Simulation/Protective Formation are deliberately deferred. This update adds no combat hooks or custom drawing.
+
+### Live test: examples/73-aura-effects-TEST.json
+
+Four independent test features (not final campaign abilities). Import into a test folder and put them on a single source actor with **CHA 18, PB +3**. Place its token, another friendly token with CHA 10, a hostile token, and a neutral token within 5 ft of the source; keep a further token beyond 60 ft. Use distinct Actors or unlinked tokens, and have an active GM. Open the source actor's Effects tab. Enable only one of the first three effects at a time:
+
+| Feature | Expected radius | Expected effect | Self |
+|---|---:|---|---|
+| Golden Guard (gold) | 15 ft | Allies +4 to all saves, regardless of their own CHA | +4 |
+| Crimson Dread (red) | 30 ft | Enemies −2 to all saves | No |
+| Violet Field (violet) | 10 ft | All other tokens +1 AC, including neutral | No |
+| Blue Ward (blue, via activity) | 60 ft | Allies +2 AC, one item use | +2 |
+
+Move recipient out and back, then move the source; check the visible radius and actual rolled save or AC. Toggle aura off while recipients are still in range; all recipient copies should disappear. Flip the source disposition to Hostile while aura off, reactivate and check reversed ally/enemy behavior. Test walls, two distinct auras active, and two same-name Golden Guard sources with different CHA to verify non-stacking. Change source PB/CHA and toggle off/on to test new radius and strength. With Blue Ward, activate the self-targeted Activity with Midi-QOL effect application enabled; verify 1 use consumed, source effect active, no slot and ally AC. Delete/disable the *actor's applied source aura*, not the item template, manually after 1 minute. If the activity fails to apply the custom effect, report it and use manual native aura application without spending another use. Long Rest restores the use, not the aura automatically. Test ordinary items and fixture 71/72 again. Separately test missing dependency and disabled advanced runtime in a fresh test world or after removing custom aura effects; do not disable Aura Effects with live aura copies present.
+
+Source verification: https://raw.githubusercontent.com/roth-michael/Aura-Effects/1.5.2/scripts/AuraActiveEffectData.mjs ; https://raw.githubusercontent.com/roth-michael/Aura-Effects/1.5.2/scripts/auras.mjs ; https://raw.githubusercontent.com/roth-michael/Aura-Effects/1.5.2/scripts/queries.mjs . Actual aura propagation, visuals, Midi-QOL activity application and player permissions are not simulated by the importer tests and need a real Foundry live test.

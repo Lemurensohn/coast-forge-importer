@@ -1,3 +1,4 @@
+import {validateAuraEffect,compileAuraEffect} from "./auras.mjs";
 import {validateAdvancedSummon} from "./advanced-summoning.mjs";
 /**
  * Coast Forge Importer v0.1 -- pure, testable parser/builder.
@@ -72,6 +73,7 @@ export function parseImport(text) {
       if (actor.ownership !== undefined || actor._id !== undefined) throw new Error(`${actor.name}: ownership and document IDs are managed in Foundry.`);
       if (actor.items !== undefined && (!Array.isArray(actor.items) || actor.items.length > 100)) throw new Error(`${actor.name}: invalid embedded items.`);
       if (actor.effects !== undefined && (!Array.isArray(actor.effects) || actor.effects.length > 30 || actor.effects.some(e=>!isObject(e)||!Array.isArray(e.changes)))) throw new Error(`${actor.name}: invalid effects.`);
+      for (const effect of actor.effects??[]) validateAuraEffect(effect);
       if (actor.items?.length) {
         const embedded = parseImport(JSON.stringify({schemaVersion:1,items:actor.items}));
         if (embedded.items.some(i=>i.grantLinks!==undefined||i.compendiumGrants!==undefined||i.effectRefs!==undefined)) throw new Error(`${actor.name}: embedded Grant Links and compendium effect/grant imports are not supported yet.`);
@@ -110,6 +112,7 @@ export function parseImport(text) {
       if (!isObject(effect) || !Array.isArray(effect.changes)) {
         throw new Error(`${p}, Effect ${j + 1}: Objekt mit 'changes'-Liste erwartet.`);
       }
+      validateAuraEffect(effect);
     }
     if (item.system?.activities && item.activities?.length) {
       throw new Error(`${p}: Activities entweder in 'activities' ODER in 'system.activities' angeben, nicht beides.`);
@@ -184,7 +187,7 @@ export function buildItemData(spec, makeId) {
     system.activities = activities;
   }
   const effects = (spec.effects ?? []).map(effect => ({
-    ...clone(effect), _id: effect._id ?? id(),
+    ...compileAuraEffect(clone(effect)), _id: effect._id ?? id(),
     name: effect.name || `${spec.name} Effect`,
     disabled: effect.disabled ?? false,
     transfer: effect.transfer ?? false
