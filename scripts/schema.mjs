@@ -1,3 +1,4 @@
+import {validateAdvancedSummon} from "./advanced-summoning.mjs";
 /**
  * Coast Forge Importer v0.1 -- pure, testable parser/builder.
  * JSON is data; this module intentionally never evaluates source code.
@@ -113,6 +114,10 @@ export function parseImport(text) {
     if (item.system?.activities && item.activities?.length) {
       throw new Error(`${p}: Activities entweder in 'activities' ODER in 'system.activities' angeben, nicht beides.`);
     }
+    if (item.advancedSummon !== undefined) {
+      validateAdvancedSummon(item.advancedSummon, item.activities ?? Object.values(item.system?.activities ?? {}));
+      warnings.push(`${item.name}: Advanced Summoning overrides native use dialog; requires unlinked NPCs, manual action economy and dismissal. Live-test permissions and scaling.`);
+    }
     const sig = `${type}\u0000${item.name.trim().toLowerCase()}`;
     if (signatures.has(sig)) warnings.push(`${item.name}: mehrfach in derselben Importdatei vorhanden.`);
     signatures.add(sig);
@@ -193,7 +198,8 @@ export function buildItemData(spec, makeId) {
     schemaVersion: SCHEMA_VERSION,
     ...(spec.ref ? {localRef: spec.ref} : {}),
     originalKind: String(spec.kind ?? type),
-    automation: String(spec.automation ?? "unknown")
+    automation: String(spec.automation ?? "unknown"),
+    ...(spec.advancedSummon !== undefined ? {advancedSummon: clone(validateAdvancedSummon(spec.advancedSummon, Object.values(system.activities ?? {})))} : {})
   };
   return {
     name: spec.name.trim(), type,

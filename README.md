@@ -222,3 +222,52 @@ Matching NPCs (name, ref, and type, within selected folder) are reused unchanged
 Three unlinked Construct NPC templates, 15 embedded features, four native summon activities (three individual and one profile chooser). Use a test Artist of level 3–5 whose class identifier is `artist`, preferably level 3, INT 16, PB 2 and AC 15. Baseline NPC HP 40, AC 15. Native bonuses attempt to reproduce `Artist AC` and `10 + 7 × Artist level + 3 × INT modifier` at summoning, relative to template base values. Check native matching of attacks, save DC and proficiency. The sample attack damage and Guardian temp HP intentionally use INT +3/PB +2; other ability scores and CR are fixture placeholders, not invented campaign rules. All other rules stay in descriptions; manually apply damage type, specialized shared uses, commands, conditions, protection, dismissal, initiative, and movement. Limit one unit at this tier. No automatic duration timer. Mixed summons, higher-tier scaling and auras are not yet implemented. Test one summon, then dismiss; confirm one use consumed and no spell slot; change AC/INT and repeat; verify HP/AC, profile selection, Small/Medium, and independent unlinked HP. Try a player account after setting permissions. Test duplicate reimport and cancellation. Do not use this fixture as the complete subclass.
 
 Native source: https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/data/activity/summon-data.mjs and https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/activity/summon.mjs .
+
+## v0.2.1 — Advanced Summoning (opt-in runtime)
+
+Existing summon items without `advancedSummon` remain native and unchanged. v0.2.0 was reported working in the user's live test. The new managed mode is **not** yet live-tested. Back up your test world. Keep old and new fixtures separate: fixture 72 deliberately uses different actor names and refs so the importer never overwrites previously tested NPC templates.
+
+Use `examples/72-tactician-advanced-summons-TEST.json`. Import to the world Item directory, select an Actor folder, confirm both previews, drag the new `Living Strategy — ADVANCED TEST` onto your Artist, select exactly one token of that Artist in a scene, and use `Summon Tactical Unit — Choose Mixed Profiles`. Single-profile activities are also available. The manager should open; choose one or more units up to the displayed remaining capacity. For each, select a profile, size and damage type. Optional blank rows are ignored. Click Place summons, then place each token using the native placement tool. If all succeed the feature's `system.uses.spent` increases by exactly one. No spell slot is spent. The module displays its own chat summary; it does not run the usual native/Midi-QOL activity usage or enforce the Bonus Action. Use the actual actor sheet's Summons button (or another managed activity) to reopen the manager and dismiss selected tokens even when no uses remain. Dismissal does not refund uses. If the sheet button is not visible, select the caster token, open the browser console and use the following diagnostic API with the actual embedded Item and Activity names/IDs:
+
+```js
+const actor = canvas.tokens.controlled[0].actor;
+const item = actor.items.find(i => i.name === 'Living Strategy — ADVANCED TEST');
+const act = item.system.activities.find(a => a.name === 'Summon Tactical Unit — Choose Mixed Profiles');
+await game.modules.get('coast-forge-importer').api.manageSummons(act);
+```
+
+No new user macro is required. The API is a fallback for testing. Native permission checks still apply: token creation, allowSummoning, source NPC ownership; dismissal/rollback also requires token deletion permission. Do not assign everyone Owner. Test first as GM, then as intended player. Only the current batch is removed on cancellation, never pre-existing summons. A failure during the consumption write or rollback can require manual repair. No server-authoritative multi-client locking; do not activate the same caster from two clients simultaneously. Only tagged managed tokens are counted; remove earlier untracked fixture tokens first. The manager scans the world scene documents accessible to the client and counts living managed tokens for the same actor UUID and group. 0 HP tokens stop counting but remain until explicitly dismissed. A token linked to an unlinked caster uses that caster's synthetic Actor UUID; moving/recreating that caster token can change its identity. Manual token duplication, hidden/unavailable scenes, or actor deletion can require GM cleanup. Source NPCs are never altered; linked NPC templates are rejected by the managed hook.
+
+### Declarative schema
+
+`advancedSummon` is an optional field on an Item spec (not a raw D&D5e system field). The builder stores the validated object in `flags.coast-forge-importer.advancedSummon`. It can support other classes and summons by configuring a different `group`, `classIdentifier`, `ability`, `tiers`, `damageTypes` and `profiles` array. The class identifier must be the actual native identifier, not the displayed class name. Native Summon activities use exact profile names matching the scaling configuration, count `"1"`, at least one `creatureSizes` value, no CR query, one `itemUses` consumption target with value `"1"`, `spellSlot:false`, and no native `bonuses` formulas (avoids double scaling). `match` still handles native attack, save DC, proficiency and disposition. Use a single managed parent feature for a resource pool. Group is the stable capacity key shared by its activities.
+
+Example (shortened; see complete fixture):
+
+```json
+{
+  "group": "example-constructs", "classIdentifier": "artist", "ability": "int",
+  "tiers": [{"minLevel":3,"maxActive":1,
+    "hp":{"base":10,"level":7,"ability":3},"ac":{"ac":1},
+    "walk":{"base":30},"save":{"ability":1}}],
+  "damageTypes":["force","fire"],
+  "profiles":[{"name":"Vanguard","rules":[{"item":"Vanguard Strike","activity":"Vanguard Strike",
+    "kind":"damage","part":0,"die":10,"dice":[1],"bonus":[{"ability":1}],"replaceType":true}]}]
+}
+```
+
+Tier selection uses actual class level; PB and AC are the character's prepared values. Tiers have ascending minLevel and a cap (1–12), and `hp`, `ac`, `walk` plus optional `save` coefficients. A coefficient object represents `base + level*classLevel + ability*abilityModifier + prof*proficiencyBonus + ac*casterAC`; omitted coefficients are zero. No arbitrary formulas/scripts. Each named profile's rules target exactly one named embedded Item and Activity; names must remain unchanged. `kind:damage` targets a damage part index (0-based), a die denomination, one dice count and bonus coefficient object per tier, and optional damage replacement as `replaceType:true` (explicit false to retain existing types). `kind:healing` targets a Heal activity and replaces its amount using one bonus object per tier while keeping the healing type. `kind:flavor` appends a computed amount with `text` to chat flavor, without mechanically applying it. For each rule the arrays must match the tier count. No automatic effect expiration or turn hooks. Missing or ambiguous activities fail closed before creating the affected token. Use NPC templates without conflicting HP/AC/save bonuses. Managed tokens use a natural AC base so later AC modifiers can apply; their base attributes and dice are snapshotted at manifestation, not rescaled in place. Native matching uses the source Summon Activity's selected spellcasting ability and actual prepared caster values; configure that explicitly (INT for Artist).
+
+### Live-test checklist
+
+| Artist level | INT mod | PB | caster AC | unit HP | unit AC | walk | cap | Vanguard | Guardian / Artillery | Bombardment | Guardian temp HP | Guardian DR (manual) |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|---|---:|---:|
+| 3 | 3 | 2 | 15 | 40 | 15 | 30 | 1 | 1d10+3 | 1d8+3 | 2d8+3 | 5 | 5 |
+| 6 | 5 | 3 | 18 | 89 | 21 | 40 | 1 | 2d10+8 | 2d8+8 | 3d8+5 | 8 | 11 |
+| 10 | 5 | 4 | 18 | 155 | 23 | 40 | 2 | 2d10+9 | 2d8+9 | 4d8+5 | 9 | 17 |
+| 14 | 5 | 5 | 18 | 237 | 25 | 40 | 3 | 3d10+10 | 3d8+10 | 5d8+5 | 10 | 25 |
+| 20 | 5 | 6 | 18 | 315 | 26 | 40 | 3 | 3d10+11 | 3d8+11 | 5d8+5 | 11 | 29 |
+
+At level 14 choose Fire Vanguard, Cold Guardian and Lightning Artillery, each separately sized. Verify one feature use, no slot, correct attack/DC, all six base saves +5, damage types and native damage rolls including save half damage. Confirm source NPCs remain unchanged. Try a fourth summon (blocked), dismiss one (no refund), resummon one (one use). Repeat with second caster and different INT, then abort placement of the second token in a two-unit batch (no net tokens or cost if rollback succeeds). Test native old fixture 71 and normal linked spellscroll regression. Test player permissions and Midi-QOL attack/save/damage workflows. Native bonus action, range and movement are still manually enforced. Shared specialized resources, Grand Simulation and protective auras, actual damage reduction, fragment integration, initiative order and armament manager are future steps. The rule duration is 1 hour; manual dismissal only. This is a summons test, not the complete Tactician subclass.
+
+Source review: D&D5e 5.2.5 `module/documents/activity/summon.mjs` (native `placeSummons`, `preSummon`, `preSummonToken`, `getTokenData`), `module/documents/activity/mixin.mjs` (`preUseActivity`), `module/data/activity/summon-data.mjs`, `module/data/actor/templates/common.mjs`, `attributes.mjs`, and `module/data/shared/uses-field.mjs` at https://github.com/foundryvtt/dnd5e/tree/release-5.2.5 . Local Node tests are not a real Foundry server; native delta merge, GUI, player permissions and Midi-QOL integration must be verified live.

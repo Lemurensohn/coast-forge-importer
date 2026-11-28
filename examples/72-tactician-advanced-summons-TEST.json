@@ -1,0 +1,1353 @@
+{
+  "schemaVersion": 1,
+  "actors": [
+    {
+      "ref": "tactician-advanced-test-vanguard",
+      "name": "Tactical Unit — Vanguard (ADVANCED TEST)",
+      "type": "npc",
+      "description": "ADVANCED TEST — source template values are placeholders. Real token stats are scaled at placement.\n\n*Offensive Unit — Assault and Formation Breaking*\n\nA Vanguard is designed to break enemy formations, overwhelm defensive positions, and eliminate priority targets through direct offensive pressure.\n\n**Vanguard Strike — Action**\n\nMelee Attack Roll: Your spell attack modifier, reach 5 feet, one target.\n\nHit: 1d10 + your Intelligence modifier Force damage.\n\nThe target can't make Opportunity Attacks until the start of the Vanguard's next turn.\n\n**Specialized Action: Break the Formation**\n\nThe Vanguard moves up to its Speed without provoking Opportunity Attacks and makes one Vanguard Strike against a creature within reach.\n\nOn a hit, the target must succeed on a Strength saving throw against your Artist save DC or be pushed up to 15 feet away from the Vanguard and have the Prone condition.\n\nThe Vanguard can then move up to 10 feet without provoking Opportunity Attacks.\n\n**Creature Type:** Construct\n\n**Size:** Small or Medium (your choice)\n\n**Armor Class:** Equal to your Armor Class\n\n**Hit Points:** 10 + (7 × your Artist level) + (3 × your Intelligence modifier)\n\n**Speed:** 30 feet\n\n**Proficiency Bonus:** Equal to yours\n\n**Attack Bonus:** Your spell attack modifier\n\n**Saving Throws:** The unit uses your Intelligence modifier for its saving throws.\n\n**Damage Immunities:** Poison, Psychic\n\n**Condition Immunities:** Charmed, Frightened, Poisoned, Exhaustion\n\nThe unit shares your Initiative count but takes its turn immediately after yours.\n\nThe appearance and material of each Tactical Unit reflect your chosen artistic medium.",
+      "system": {
+        "abilities": {
+          "str": {
+            "value": 10
+          },
+          "dex": {
+            "value": 10
+          },
+          "con": {
+            "value": 10
+          },
+          "int": {
+            "value": 16
+          },
+          "wis": {
+            "value": 10
+          },
+          "cha": {
+            "value": 10
+          }
+        },
+        "attributes": {
+          "ac": {
+            "calc": "flat",
+            "flat": 15
+          },
+          "hp": {
+            "value": 40,
+            "max": 40
+          },
+          "movement": {
+            "walk": 30,
+            "units": "ft"
+          }
+        },
+        "details": {
+          "type": {
+            "value": "construct"
+          },
+          "cr": 1
+        },
+        "traits": {
+          "size": "med",
+          "di": {
+            "value": [
+              "poison",
+              "psychic"
+            ]
+          },
+          "ci": {
+            "value": [
+              "charmed",
+              "frightened",
+              "poisoned",
+              "exhaustion"
+            ]
+          }
+        }
+      },
+      "prototypeToken": {
+        "actorLink": false,
+        "width": 1,
+        "height": 1,
+        "disposition": 1
+      },
+      "items": [
+        {
+          "name": "Vanguard Strike",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Melee Attack Roll: Your spell attack modifier, reach 5 feet, one target.\n\nHit: 1d10 + your Intelligence modifier Force damage.\n\nThe target can't make Opportunity Attacks until the start of the Vanguard's next turn.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Vanguard Strike",
+              "type": "attack",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "5",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "attack": {
+                "ability": "int",
+                "bonus": "",
+                "flat": false,
+                "type": {
+                  "value": "melee",
+                  "classification": "weapon"
+                }
+              },
+              "damage": {
+                "includeBase": false,
+                "critical": {
+                  "allow": true
+                }
+              },
+              "damageParts": [
+                {
+                  "formula": "1d10 + 3",
+                  "types": [
+                    "force"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Break the Formation",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "The Vanguard moves up to its Speed without provoking Opportunity Attacks and makes one Vanguard Strike against a creature within reach.\n\nOn a hit, the target must succeed on a Strength saving throw against your Artist save DC or be pushed up to 15 feet away from the Vanguard and have the Prone condition.\n\nThe Vanguard can then move up to 10 feet without provoking Opportunity Attacks.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Break the Formation — Movement",
+              "type": "utility",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "5",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              }
+            },
+            {
+              "name": "Break the Formation — Strength Save",
+              "type": "save",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "5",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "save": {
+                "ability": [
+                  "str"
+                ],
+                "dc": {
+                  "calculation": "",
+                  "formula": "13"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tactical Commands",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Your Tactical Units are autonomous in execution but incapable of independent decision-making. They possess no individual ambitions, strategic judgment, or ability to improvise beyond their assigned instructions.\n\nWhen you manifest a Tactical Unit, you can immediately assign it an initial command without requiring an additional action.\n\nAs a Bonus Action, you can issue a new command to any number of your Tactical Units.\n\nA Tactical Unit continues to execute its most recent command on each of its turns until you assign it a new command or until the assigned command can no longer be completed.\n\nWhen commanded to attack a creature, the unit moves toward an appropriate position and attacks that creature on each of its turns without requiring further commands.\n\nIf its assigned target is defeated or becomes permanently inaccessible, the unit stops executing its command and takes the Dodge action until it receives new instructions.\n\nA Tactical Unit can't independently select a new target or decide to use its Specialized Action.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Artistic Medium",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Whenever you manifest a Tactical Unit, you can replace the Force damage dealt by its attacks and Specialized Actions with another damage type appropriate to its construction.\n\nThe available damage types are Bludgeoning, Piercing, Slashing, Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, and Thunder.\n\nThe chosen damage type remains unchanged for the duration of that unit's existence.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Specialized Action Resources",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "When you command a Tactical Unit to execute its Specialized Action, it does so on its next turn instead of taking its normal action.\n\nAfter completing its Specialized Action, the unit automatically resumes its previous command.\n\nEach Tactical Unit specialization can execute its Specialized Action a number of times equal to your Proficiency Bonus per Long Rest.\n\nDismissing, destroying, or replacing a Tactical Unit doesn't restore its expended uses of its Specialized Action.\n\nThese uses are tracked separately for each specialization. All expended uses are regained when you finish a Long Rest.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        }
+      ]
+    },
+    {
+      "ref": "tactician-advanced-test-guardian",
+      "name": "Tactical Unit — Guardian (ADVANCED TEST)",
+      "type": "npc",
+      "description": "ADVANCED TEST — source template values are placeholders. Real token stats are scaled at placement.\n\n*Defensive Unit — Protection and Damage Mitigation*\n\nA Guardian is designed to protect important allies, reinforce vulnerable positions, and ensure the survival of strategically valuable individuals.\n\n**Guardian Strike — Action**\n\nMelee Attack Roll: Your spell attack modifier, reach 5 feet, one target.\n\nHit: 1d8 + your Intelligence modifier Force damage.\n\nOn a hit, one creature of your choice within 10 feet of the Guardian gains Temporary Hit Points equal to your Proficiency Bonus + your Intelligence modifier.\n\n**Specialized Action: Protective Formation**\n\nThe Guardian moves up to its Speed toward a designated friendly creature.\n\nUntil the start of the Guardian's next turn, while the designated creature is within 10 feet of the Guardian, it gains the following benefits:\n\n- A +2 bonus to Armor Class.\n- A +2 bonus to all saving throws.\n- Whenever it takes damage, the damage is reduced by an amount equal to your Intelligence modifier + your Proficiency Bonus.\n\nThe Guardian can't grant these benefits to itself.\n\n**Creature Type:** Construct\n\n**Size:** Small or Medium (your choice)\n\n**Armor Class:** Equal to your Armor Class\n\n**Hit Points:** 10 + (7 × your Artist level) + (3 × your Intelligence modifier)\n\n**Speed:** 30 feet\n\n**Proficiency Bonus:** Equal to yours\n\n**Attack Bonus:** Your spell attack modifier\n\n**Saving Throws:** The unit uses your Intelligence modifier for its saving throws.\n\n**Damage Immunities:** Poison, Psychic\n\n**Condition Immunities:** Charmed, Frightened, Poisoned, Exhaustion\n\nThe unit shares your Initiative count but takes its turn immediately after yours.\n\nThe appearance and material of each Tactical Unit reflect your chosen artistic medium.",
+      "system": {
+        "abilities": {
+          "str": {
+            "value": 10
+          },
+          "dex": {
+            "value": 10
+          },
+          "con": {
+            "value": 10
+          },
+          "int": {
+            "value": 16
+          },
+          "wis": {
+            "value": 10
+          },
+          "cha": {
+            "value": 10
+          }
+        },
+        "attributes": {
+          "ac": {
+            "calc": "flat",
+            "flat": 15
+          },
+          "hp": {
+            "value": 40,
+            "max": 40
+          },
+          "movement": {
+            "walk": 30,
+            "units": "ft"
+          }
+        },
+        "details": {
+          "type": {
+            "value": "construct"
+          },
+          "cr": 1
+        },
+        "traits": {
+          "size": "med",
+          "di": {
+            "value": [
+              "poison",
+              "psychic"
+            ]
+          },
+          "ci": {
+            "value": [
+              "charmed",
+              "frightened",
+              "poisoned",
+              "exhaustion"
+            ]
+          }
+        }
+      },
+      "prototypeToken": {
+        "actorLink": false,
+        "width": 1,
+        "height": 1,
+        "disposition": 1
+      },
+      "items": [
+        {
+          "name": "Guardian Strike",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Melee Attack Roll: Your spell attack modifier, reach 5 feet, one target.\n\nHit: 1d8 + your Intelligence modifier Force damage.\n\nOn a hit, one creature of your choice within 10 feet of the Guardian gains Temporary Hit Points equal to your Proficiency Bonus + your Intelligence modifier.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Guardian Strike",
+              "type": "attack",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "5",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "attack": {
+                "ability": "int",
+                "bonus": "",
+                "flat": false,
+                "type": {
+                  "value": "melee",
+                  "classification": "weapon"
+                }
+              },
+              "damage": {
+                "includeBase": false,
+                "critical": {
+                  "allow": true
+                }
+              },
+              "damageParts": [
+                {
+                  "formula": "1d8 + 3",
+                  "types": [
+                    "force"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Guardian Strike — Temporary HP",
+              "type": "heal",
+              "activation": {
+                "type": "special",
+                "value": 0,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "10",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "healing": {
+                "number": 0,
+                "denomination": 0,
+                "bonus": "",
+                "types": [
+                  "temphp"
+                ],
+                "custom": {
+                  "enabled": true,
+                  "formula": "5"
+                },
+                "scaling": {
+                  "mode": "",
+                  "number": 0,
+                  "formula": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Protective Formation",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "The Guardian moves up to its Speed toward a designated friendly creature.\n\nUntil the start of the Guardian's next turn, while the designated creature is within 10 feet of the Guardian, it gains the following benefits:\n\n- A +2 bonus to Armor Class.\n- A +2 bonus to all saving throws.\n- Whenever it takes damage, the damage is reduced by an amount equal to your Intelligence modifier + your Proficiency Bonus.\n\nThe Guardian can't grant these benefits to itself.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Protective Formation",
+              "type": "utility",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "10",
+                "override": true
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Apply +2 AC and +2 saves to one selected ally within 10 ft; damage reduction is calculated below. Apply and remove manually; shared specialization uses tracked manually."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tactical Commands",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Your Tactical Units are autonomous in execution but incapable of independent decision-making. They possess no individual ambitions, strategic judgment, or ability to improvise beyond their assigned instructions.\n\nWhen you manifest a Tactical Unit, you can immediately assign it an initial command without requiring an additional action.\n\nAs a Bonus Action, you can issue a new command to any number of your Tactical Units.\n\nA Tactical Unit continues to execute its most recent command on each of its turns until you assign it a new command or until the assigned command can no longer be completed.\n\nWhen commanded to attack a creature, the unit moves toward an appropriate position and attacks that creature on each of its turns without requiring further commands.\n\nIf its assigned target is defeated or becomes permanently inaccessible, the unit stops executing its command and takes the Dodge action until it receives new instructions.\n\nA Tactical Unit can't independently select a new target or decide to use its Specialized Action.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Artistic Medium",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Whenever you manifest a Tactical Unit, you can replace the Force damage dealt by its attacks and Specialized Actions with another damage type appropriate to its construction.\n\nThe available damage types are Bludgeoning, Piercing, Slashing, Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, and Thunder.\n\nThe chosen damage type remains unchanged for the duration of that unit's existence.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Specialized Action Resources",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "When you command a Tactical Unit to execute its Specialized Action, it does so on its next turn instead of taking its normal action.\n\nAfter completing its Specialized Action, the unit automatically resumes its previous command.\n\nEach Tactical Unit specialization can execute its Specialized Action a number of times equal to your Proficiency Bonus per Long Rest.\n\nDismissing, destroying, or replacing a Tactical Unit doesn't restore its expended uses of its Specialized Action.\n\nThese uses are tracked separately for each specialization. All expended uses are regained when you finish a Long Rest.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        }
+      ]
+    },
+    {
+      "ref": "tactician-advanced-test-artillery",
+      "name": "Tactical Unit — Artillery (ADVANCED TEST)",
+      "type": "npc",
+      "description": "ADVANCED TEST — source template values are placeholders. Real token stats are scaled at placement.\n\n*Ranged Unit — Area Damage and Battlefield Control*\n\nAn Artillery unit is designed to attack from advantageous positions, disrupt enemy movement, and subject hostile formations to concentrated ranged attacks.\n\n**Artillery Shot — Action**\n\nRanged Attack Roll: Your spell attack modifier, range 60/120 feet, one target.\n\nHit: 1d8 + your Intelligence modifier Force damage.\n\nThe target's Speed is reduced by 10 feet until the start of the Artillery's next turn.\n\n**Specialized Action: Saturation Bombardment**\n\nThe Artillery targets a point within 90 feet of itself.\n\nEach creature in a 10-foot-radius Sphere centered on that point must make a Dexterity saving throw against your Artist save DC.\n\nA creature takes 2d8 + your Intelligence modifier Force damage on a failed save or half as much damage on a successful one.\n\nThe affected area becomes Difficult Terrain until the start of the Artillery's next turn.\n\n**Creature Type:** Construct\n\n**Size:** Small or Medium (your choice)\n\n**Armor Class:** Equal to your Armor Class\n\n**Hit Points:** 10 + (7 × your Artist level) + (3 × your Intelligence modifier)\n\n**Speed:** 30 feet\n\n**Proficiency Bonus:** Equal to yours\n\n**Attack Bonus:** Your spell attack modifier\n\n**Saving Throws:** The unit uses your Intelligence modifier for its saving throws.\n\n**Damage Immunities:** Poison, Psychic\n\n**Condition Immunities:** Charmed, Frightened, Poisoned, Exhaustion\n\nThe unit shares your Initiative count but takes its turn immediately after yours.\n\nThe appearance and material of each Tactical Unit reflect your chosen artistic medium.",
+      "system": {
+        "abilities": {
+          "str": {
+            "value": 10
+          },
+          "dex": {
+            "value": 10
+          },
+          "con": {
+            "value": 10
+          },
+          "int": {
+            "value": 16
+          },
+          "wis": {
+            "value": 10
+          },
+          "cha": {
+            "value": 10
+          }
+        },
+        "attributes": {
+          "ac": {
+            "calc": "flat",
+            "flat": 15
+          },
+          "hp": {
+            "value": 40,
+            "max": 40
+          },
+          "movement": {
+            "walk": 30,
+            "units": "ft"
+          }
+        },
+        "details": {
+          "type": {
+            "value": "construct"
+          },
+          "cr": 1
+        },
+        "traits": {
+          "size": "med",
+          "di": {
+            "value": [
+              "poison",
+              "psychic"
+            ]
+          },
+          "ci": {
+            "value": [
+              "charmed",
+              "frightened",
+              "poisoned",
+              "exhaustion"
+            ]
+          }
+        }
+      },
+      "prototypeToken": {
+        "actorLink": false,
+        "width": 1,
+        "height": 1,
+        "disposition": 1
+      },
+      "items": [
+        {
+          "name": "Artillery Shot",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Ranged Attack Roll: Your spell attack modifier, range 60/120 feet, one target.\n\nHit: 1d8 + your Intelligence modifier Force damage.\n\nThe target's Speed is reduced by 10 feet until the start of the Artillery's next turn.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Artillery Shot",
+              "type": "attack",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "60",
+                "override": true,
+                "long": "120"
+              },
+              "target": {
+                "affects": {
+                  "type": "creature",
+                  "count": "1"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "attack": {
+                "ability": "int",
+                "bonus": "",
+                "flat": false,
+                "type": {
+                  "value": "ranged",
+                  "classification": "weapon"
+                }
+              },
+              "damage": {
+                "includeBase": false,
+                "critical": {
+                  "allow": true
+                }
+              },
+              "damageParts": [
+                {
+                  "formula": "1d8 + 3",
+                  "types": [
+                    "force"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Saturation Bombardment",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "The Artillery targets a point within 90 feet of itself.\n\nEach creature in a 10-foot-radius Sphere centered on that point must make a Dexterity saving throw against your Artist save DC.\n\nA creature takes 2d8 + your Intelligence modifier Force damage on a failed save or half as much damage on a successful one.\n\nThe affected area becomes Difficult Terrain until the start of the Artillery's next turn.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": [
+            {
+              "name": "Saturation Bombardment",
+              "type": "save",
+              "activation": {
+                "type": "action",
+                "value": 1,
+                "override": true
+              },
+              "consumption": {
+                "spellSlot": false,
+                "targets": []
+              },
+              "range": {
+                "units": "ft",
+                "value": "90",
+                "override": true
+              },
+              "target": {
+                "template": {
+                  "type": "sphere",
+                  "size": "10",
+                  "units": "ft",
+                  "contiguous": false
+                },
+                "affects": {
+                  "type": "creature"
+                },
+                "override": true
+              },
+              "description": {
+                "chatFlavor": "Advanced test: use this scaled Activity. Apply movement, commands, conditional effects, durations and shared specialization resources manually as appropriate."
+              },
+              "save": {
+                "ability": [
+                  "dex"
+                ],
+                "dc": {
+                  "calculation": "",
+                  "formula": "13"
+                }
+              },
+              "damageParts": [
+                {
+                  "formula": "2d8 + 3",
+                  "types": [
+                    "force"
+                  ]
+                }
+              ],
+              "damage": {
+                "onSave": "half",
+                "critical": {
+                  "allow": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tactical Commands",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Your Tactical Units are autonomous in execution but incapable of independent decision-making. They possess no individual ambitions, strategic judgment, or ability to improvise beyond their assigned instructions.\n\nWhen you manifest a Tactical Unit, you can immediately assign it an initial command without requiring an additional action.\n\nAs a Bonus Action, you can issue a new command to any number of your Tactical Units.\n\nA Tactical Unit continues to execute its most recent command on each of its turns until you assign it a new command or until the assigned command can no longer be completed.\n\nWhen commanded to attack a creature, the unit moves toward an appropriate position and attacks that creature on each of its turns without requiring further commands.\n\nIf its assigned target is defeated or becomes permanently inaccessible, the unit stops executing its command and takes the Dodge action until it receives new instructions.\n\nA Tactical Unit can't independently select a new target or decide to use its Specialized Action.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Artistic Medium",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "Whenever you manifest a Tactical Unit, you can replace the Force damage dealt by its attacks and Specialized Actions with another damage type appropriate to its construction.\n\nThe available damage types are Bludgeoning, Piercing, Slashing, Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, and Thunder.\n\nThe chosen damage type remains unchanged for the duration of that unit's existence.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        },
+        {
+          "name": "Specialized Action Resources",
+          "kind": "feature",
+          "automation": "partial",
+          "description": "When you command a Tactical Unit to execute its Specialized Action, it does so on its next turn instead of taking its normal action.\n\nAfter completing its Specialized Action, the unit automatically resumes its previous command.\n\nEach Tactical Unit specialization can execute its Specialized Action a number of times equal to your Proficiency Bonus per Long Rest.\n\nDismissing, destroying, or replacing a Tactical Unit doesn't restore its expended uses of its Specialized Action.\n\nThese uses are tracked separately for each specialization. All expended uses are regained when you finish a Long Rest.",
+          "system": {
+            "type": {
+              "value": "monster"
+            }
+          },
+          "activities": []
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "name": "Living Strategy — ADVANCED TEST",
+      "kind": "feature",
+      "ref": "living-strategy-advanced-test",
+      "automation": "partial",
+      "description": "Your mastery of warfare allows you to manifest autonomous military constructs known as Tactical Units.\n\nThese creations represent the physical manifestation of military strategies, each designed to fulfill a specific purpose within your composition.\n\nAs a Bonus Action, you can manifest a Tactical Unit in an unoccupied space you can see within 30 feet of yourself.\n\nWhen you manifest a Tactical Unit, choose its specialization from the options below.\n\nThe unit remains for 1 hour, until it is reduced to 0 Hit Points, or until you dismiss it (no action required).\n\nYou can use this feature a number of times equal to your Proficiency Bonus, regaining all expended uses when you finish a Long Rest.\n\nInitially, you can maintain only one Tactical Unit at a time.\n\n**Creature Type:** Construct\n\n**Size:** Small or Medium (your choice)\n\n**Armor Class:** Equal to your Armor Class\n\n**Hit Points:** 10 + (7 × your Artist level) + (3 × your Intelligence modifier)\n\n**Speed:** 30 feet\n\n**Proficiency Bonus:** Equal to yours\n\n**Attack Bonus:** Your spell attack modifier\n\n**Saving Throws:** The unit uses your Intelligence modifier for its saving throws.\n\n**Damage Immunities:** Poison, Psychic\n\n**Condition Immunities:** Charmed, Frightened, Poisoned, Exhaustion\n\nThe unit shares your Initiative count but takes its turn immediately after yours.\n\nThe appearance and material of each Tactical Unit reflect your chosen artistic medium.\n\nADVANCED TEST: At Artist levels 6–9, AC = Artist AC + PB, HP = 15 + 9 × Artist level + 4 × INT, Speed = 40 ft.; normal attacks gain one damage die and +PB damage. At 10–13, max two units, AC = Artist AC + PB + 1, HP = 20 + 11 × Artist level + 5 × INT. At 14+, max three units, AC = Artist AC + PB + 2, HP = 25 + 13 × Artist level + 6 × INT, normal attacks gain one further damage die. One use can manifest any number up to the remaining capacity. Choose each unit's specialization, size and damage type. Duration 1 hour; manual dismissal. Stats snapshot at summoning. Shared specialized uses, commands, initiative, on-hit conditions, movement, damage reduction and auras are manual. Test fixture only.",
+      "system": {
+        "type": {
+          "value": "class"
+        },
+        "prerequisites": {
+          "level": 3
+        },
+        "uses": {
+          "spent": 0,
+          "max": "@prof",
+          "recovery": [
+            {
+              "period": "lr",
+              "type": "recoverAll"
+            }
+          ]
+        }
+      },
+      "activities": [
+        {
+          "name": "Summon Vanguard",
+          "type": "summon",
+          "activation": {
+            "type": "bonus",
+            "value": 1,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "ft",
+            "value": "30",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "space",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Advanced Summoning manager; one use for selected units. Rule duration 1 hour, manual dismissal."
+          },
+          "visibility": {
+            "identifier": "artist",
+            "level": {
+              "min": 3
+            }
+          },
+          "profiles": [
+            {
+              "name": "Vanguard",
+              "actorRef": "tactician-advanced-test-vanguard",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            }
+          ],
+          "match": {
+            "ability": "int",
+            "attacks": true,
+            "saves": true,
+            "proficiency": true,
+            "disposition": true
+          },
+          "bonuses": {},
+          "creatureSizes": [
+            "sm",
+            "med"
+          ],
+          "summon": {
+            "mode": "",
+            "prompt": true
+          }
+        },
+        {
+          "name": "Summon Guardian",
+          "type": "summon",
+          "activation": {
+            "type": "bonus",
+            "value": 1,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "ft",
+            "value": "30",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "space",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Advanced Summoning manager; one use for selected units. Rule duration 1 hour, manual dismissal."
+          },
+          "visibility": {
+            "identifier": "artist",
+            "level": {
+              "min": 3
+            }
+          },
+          "profiles": [
+            {
+              "name": "Guardian",
+              "actorRef": "tactician-advanced-test-guardian",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            }
+          ],
+          "match": {
+            "ability": "int",
+            "attacks": true,
+            "saves": true,
+            "proficiency": true,
+            "disposition": true
+          },
+          "bonuses": {},
+          "creatureSizes": [
+            "sm",
+            "med"
+          ],
+          "summon": {
+            "mode": "",
+            "prompt": true
+          }
+        },
+        {
+          "name": "Summon Artillery",
+          "type": "summon",
+          "activation": {
+            "type": "bonus",
+            "value": 1,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "ft",
+            "value": "30",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "space",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Advanced Summoning manager; one use for selected units. Rule duration 1 hour, manual dismissal."
+          },
+          "visibility": {
+            "identifier": "artist",
+            "level": {
+              "min": 3
+            }
+          },
+          "profiles": [
+            {
+              "name": "Artillery",
+              "actorRef": "tactician-advanced-test-artillery",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            }
+          ],
+          "match": {
+            "ability": "int",
+            "attacks": true,
+            "saves": true,
+            "proficiency": true,
+            "disposition": true
+          },
+          "bonuses": {},
+          "creatureSizes": [
+            "sm",
+            "med"
+          ],
+          "summon": {
+            "mode": "",
+            "prompt": true
+          }
+        },
+        {
+          "name": "Summon Tactical Unit — Choose Mixed Profiles",
+          "type": "summon",
+          "activation": {
+            "type": "bonus",
+            "value": 1,
+            "override": true
+          },
+          "consumption": {
+            "spellSlot": false,
+            "targets": [
+              {
+                "type": "itemUses",
+                "value": "1"
+              }
+            ]
+          },
+          "range": {
+            "units": "ft",
+            "value": "30",
+            "override": true
+          },
+          "target": {
+            "affects": {
+              "type": "space",
+              "count": "1"
+            },
+            "override": true
+          },
+          "description": {
+            "chatFlavor": "Advanced Summoning manager; one use for selected units. Rule duration 1 hour, manual dismissal."
+          },
+          "visibility": {
+            "identifier": "artist",
+            "level": {
+              "min": 3
+            }
+          },
+          "profiles": [
+            {
+              "name": "Vanguard",
+              "actorRef": "tactician-advanced-test-vanguard",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            },
+            {
+              "name": "Guardian",
+              "actorRef": "tactician-advanced-test-guardian",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            },
+            {
+              "name": "Artillery",
+              "actorRef": "tactician-advanced-test-artillery",
+              "count": "1",
+              "level": {
+                "min": 3
+              }
+            }
+          ],
+          "match": {
+            "ability": "int",
+            "attacks": true,
+            "saves": true,
+            "proficiency": true,
+            "disposition": true
+          },
+          "bonuses": {},
+          "creatureSizes": [
+            "sm",
+            "med"
+          ],
+          "summon": {
+            "mode": "",
+            "prompt": true
+          }
+        }
+      ],
+      "advancedSummon": {
+        "group": "tactician-living-strategy",
+        "classIdentifier": "artist",
+        "ability": "int",
+        "tiers": [
+          {
+            "minLevel": 3,
+            "maxActive": 1,
+            "hp": {
+              "base": 10,
+              "level": 7,
+              "ability": 3
+            },
+            "ac": {
+              "ac": 1,
+              "prof": 0,
+              "base": 0
+            },
+            "walk": {
+              "base": 30
+            },
+            "save": {
+              "ability": 1
+            }
+          },
+          {
+            "minLevel": 6,
+            "maxActive": 1,
+            "hp": {
+              "base": 15,
+              "level": 9,
+              "ability": 4
+            },
+            "ac": {
+              "ac": 1,
+              "prof": 1,
+              "base": 0
+            },
+            "walk": {
+              "base": 40
+            },
+            "save": {
+              "ability": 1
+            }
+          },
+          {
+            "minLevel": 10,
+            "maxActive": 2,
+            "hp": {
+              "base": 20,
+              "level": 11,
+              "ability": 5
+            },
+            "ac": {
+              "ac": 1,
+              "prof": 1,
+              "base": 1
+            },
+            "walk": {
+              "base": 40
+            },
+            "save": {
+              "ability": 1
+            }
+          },
+          {
+            "minLevel": 14,
+            "maxActive": 3,
+            "hp": {
+              "base": 25,
+              "level": 13,
+              "ability": 6
+            },
+            "ac": {
+              "ac": 1,
+              "prof": 1,
+              "base": 2
+            },
+            "walk": {
+              "base": 40
+            },
+            "save": {
+              "ability": 1
+            }
+          }
+        ],
+        "damageTypes": [
+          "force",
+          "bludgeoning",
+          "piercing",
+          "slashing",
+          "acid",
+          "cold",
+          "fire",
+          "lightning",
+          "necrotic",
+          "poison",
+          "psychic",
+          "radiant",
+          "thunder"
+        ],
+        "profiles": [
+          {
+            "name": "Vanguard",
+            "rules": [
+              {
+                "item": "Vanguard Strike",
+                "activity": "Vanguard Strike",
+                "kind": "damage",
+                "part": 0,
+                "die": 10,
+                "dice": [
+                  1,
+                  2,
+                  2,
+                  3
+                ],
+                "bonus": [
+                  {
+                    "ability": 1,
+                    "prof": 0
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  }
+                ],
+                "replaceType": true
+              }
+            ]
+          },
+          {
+            "name": "Guardian",
+            "rules": [
+              {
+                "item": "Guardian Strike",
+                "activity": "Guardian Strike",
+                "kind": "damage",
+                "part": 0,
+                "die": 8,
+                "dice": [
+                  1,
+                  2,
+                  2,
+                  3
+                ],
+                "bonus": [
+                  {
+                    "ability": 1,
+                    "prof": 0
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  }
+                ],
+                "replaceType": true
+              },
+              {
+                "item": "Guardian Strike",
+                "activity": "Guardian Strike — Temporary HP",
+                "kind": "healing",
+                "bonus": [
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  }
+                ]
+              },
+              {
+                "item": "Protective Formation",
+                "activity": "Protective Formation",
+                "kind": "flavor",
+                "text": "Damage reduction per damage instance",
+                "bonus": [
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 2
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 3
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Artillery",
+            "rules": [
+              {
+                "item": "Artillery Shot",
+                "activity": "Artillery Shot",
+                "kind": "damage",
+                "part": 0,
+                "die": 8,
+                "dice": [
+                  1,
+                  2,
+                  2,
+                  3
+                ],
+                "bonus": [
+                  {
+                    "ability": 1,
+                    "prof": 0
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  },
+                  {
+                    "ability": 1,
+                    "prof": 1
+                  }
+                ],
+                "replaceType": true
+              },
+              {
+                "item": "Saturation Bombardment",
+                "activity": "Saturation Bombardment",
+                "kind": "damage",
+                "part": 0,
+                "die": 8,
+                "dice": [
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "bonus": [
+                  {
+                    "ability": 1
+                  },
+                  {
+                    "ability": 1
+                  },
+                  {
+                    "ability": 1
+                  },
+                  {
+                    "ability": 1
+                  }
+                ],
+                "replaceType": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

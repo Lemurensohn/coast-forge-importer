@@ -1,0 +1,1063 @@
+TAP version 13
+# Coast Forge | Error: Living Strategy — TEST (Artist 3–5): unresolved or conflicting summon actorRef 'missing'.
+#     at file:///tmp/cf21/scripts/actors.mjs:49:95
+#     at Array.map (<anonymous>)
+#     at resolveSummonRefs (file:///tmp/cf21/scripts/actors.mjs:37:22)
+#     at openImporter (file:///tmp/cf21/scripts/main.mjs:373:22)
+#     at async TestContext.<anonymous> (file:///tmp/cf21/tests/actor-import-workflow.test.mjs:20:150)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+# Subtest: actual importer creates NPCs first and then one world feature with real actor UUIDs
+ok 1 - actual importer creates NPCs first and then one world feature with real actor UUIDs
+  ---
+  duration_ms: 16.279598
+  type: 'test'
+  ...
+# Subtest: cancelled second preview writes neither actors nor items
+ok 2 - cancelled second preview writes neither actors nor items
+  ---
+  duration_ms: 2.861077
+  type: 'test'
+  ...
+# Subtest: actor-only actual import skips item preview and world Item creation
+ok 3 - actor-only actual import skips item preview and world Item creation
+  ---
+  duration_ms: 3.285434
+  type: 'test'
+  ...
+# Subtest: reimport reuses actors and skips correctly linked Item
+ok 4 - reimport reuses actors and skips correctly linked Item
+  ---
+  duration_ms: 7.087299
+  type: 'test'
+  ...
+# Subtest: bad local reference blocks both previews and all writes
+ok 5 - bad local reference blocks both previews and all writes
+  ---
+  duration_ms: 2.37494
+  type: 'test'
+  ...
+# Subtest: actor-only imports are accepted; old item-only schema unchanged
+ok 6 - actor-only imports are accepted; old item-only schema unchanged
+  ---
+  duration_ms: 4.14221
+  type: 'test'
+  ...
+# Subtest: malformed actors and duplicate refs/names rejected
+ok 7 - malformed actors and duplicate refs/names rejected
+  ---
+  duration_ms: 5.243719
+  type: 'test'
+  ...
+# Subtest: builds native NPCs, embedded activities, immunities and unlinked tokens
+ok 8 - builds native NPCs, embedded activities, immunities and unlinked tokens
+  ---
+  duration_ms: 3.118088
+  type: 'test'
+  ...
+# Subtest: three separate activities and multi-profile chooser resolve all six UUID links, preserving settings
+ok 9 - three separate activities and multi-profile chooser resolve all six UUID links, preserving settings
+  ---
+  duration_ms: 1.458138
+  type: 'test'
+  ...
+# Subtest: missing, conflicting and non-summon refs fail before creation
+ok 10 - missing, conflicting and non-summon refs fail before creation
+  ---
+  duration_ms: 2.197871
+  type: 'test'
+  ...
+# Subtest: native external UUID is preserved and embedded summon links resolve
+ok 11 - native external UUID is preserved and embedded summon links resolve
+  ---
+  duration_ms: 1.417906
+  type: 'test'
+  ...
+# Subtest: existing matching Actor is reused; name collision and ID collision rejected
+ok 12 - existing matching Actor is reused; name collision and ID collision rejected
+  ---
+  duration_ms: 0.590467
+  type: 'test'
+  ...
+# Subtest: portrait inherits to token unless explicit token artwork, raw effects normalize
+ok 13 - portrait inherits to token unless explicit token artwork, raw effects normalize
+  ---
+  duration_ms: 0.699503
+  type: 'test'
+  ...
+# Subtest: actor folder destination rejects item folder
+ok 14 - actor folder destination rejects item folder
+  ---
+  duration_ms: 0.434887
+  type: 'test'
+  ...
+# Subtest: creation checks exact UUID, preserves selected portrait, refuses stale target
+ok 15 - creation checks exact UUID, preserves selected portrait, refuses stale target
+  ---
+  duration_ms: 1.680636
+  type: 'test'
+  ...
+# Subtest: actor create UUID mismatch stops subsequent actors
+ok 16 - actor create UUID mismatch stops subsequent actors
+  ---
+  duration_ms: 1.421699
+  type: 'test'
+  ...
+# Subtest: skipped item with stale summon profiles must be updated
+ok 17 - skipped item with stale summon profiles must be updated
+  ---
+  duration_ms: 7.881568
+  type: 'test'
+  ...
+# Subtest: advanced fixture parses, builds flags and preserves four native activities and resolved UUIDs
+ok 18 - advanced fixture parses, builds flags and preserves four native activities and resolved UUIDs
+  ---
+  duration_ms: 6.23299
+  type: 'test'
+  ...
+# Subtest: invalid config and unsupported resource profiles are rejected before writes
+ok 19 - invalid config and unsupported resource profiles are rejected before writes
+  ---
+  duration_ms: 9.508928
+  type: 'test'
+  ...
+# Subtest: legacy fixture stays native and does not receive managed flag
+ok 20 - legacy fixture stays native and does not receive managed flag
+  ---
+  duration_ms: 0.831582
+  type: 'test'
+  ...
+# Subtest: level boundaries and multiclass caster use class level and actual PB
+ok 21 - level boundaries and multiclass caster use class level and actual PB
+  ---
+  duration_ms: 1.448661
+  type: 'test'
+  ...
+# Subtest: vanguard scaling retains attack and native enchantment, replaces only selected damage type
+ok 22 - vanguard scaling retains attack and native enchantment, replaces only selected damage type
+  ---
+  duration_ms: 7.242267
+  type: 'test'
+  ...
+# Subtest: guardian scales attack, temp HP and DR guidance without removing other activities
+ok 23 - guardian scales attack, temp HP and DR guidance without removing other activities
+  ---
+  duration_ms: 2.032561
+  type: 'test'
+  ...
+# Subtest: artillery normal and area damage scale independently without losing save or template
+ok 24 - artillery normal and area damage scale independently without losing save or template
+  ---
+  duration_ms: 6.786186
+  type: 'test'
+  ...
+# Subtest: snapshot updates AC, HP, speed, all six save modifiers and ownership metadata
+ok 25 - snapshot updates AC, HP, speed, all six save modifiers and ownership metadata
+  ---
+  duration_ms: 1.532497
+  type: 'test'
+  ...
+# Subtest: linked templates, invalid types, missing activities and malformed rules fail closed
+ok 26 - linked templates, invalid types, missing activities and malformed rules fail closed
+  ---
+  duration_ms: 1.588022
+  type: 'test'
+  ...
+# Subtest: active capacity is scoped by owner and group across scenes; dead tokens do not occupy slots
+ok 27 - active capacity is scoped by owner and group across scenes; dead tokens do not occupy slots
+  ---
+  duration_ms: 0.539798
+  type: 'test'
+  ...
+# Subtest: mixed placement uses one resource and creates each selected profile once
+ok 28 - mixed placement uses one resource and creates each selected profile once
+  ---
+  duration_ms: 0.587381
+  type: 'test'
+  ...
+# Subtest: partial placement cancellation rolls back only batch without spending a use
+ok 29 - partial placement cancellation rolls back only batch without spending a use
+  ---
+  duration_ms: 0.35767
+  type: 'test'
+  ...
+# Subtest: capacity rejection never starts placement
+ok 30 - capacity rejection never starts placement
+  ---
+  duration_ms: 0.257922
+  type: 'test'
+  ...
+# Subtest: resource changes during placement and consumption failures roll back tokens
+ok 31 - resource changes during placement and consumption failures roll back tokens
+  ---
+  duration_ms: 0.218998
+  type: 'test'
+  ...
+# Subtest: rollback permission failure explicitly reports manual repair
+ok 32 - rollback permission failure explicitly reports manual repair
+  ---
+  duration_ms: 0.22571
+  type: 'test'
+  ...
+# Subtest: hooks only intercept explicitly managed summons; stale chat placements blocked
+ok 33 - hooks only intercept explicitly managed summons; stale chat placements blocked
+  ---
+  duration_ms: 0.579326
+  type: 'test'
+  ...
+# Subtest: manager coordinates native placement hooks end-to-end in a mocked world
+ok 34 - manager coordinates native placement hooks end-to-end in a mocked world
+  ---
+  duration_ms: 3.375891
+  type: 'test'
+  ...
+# Subtest: preview item picker propagates inherited art, effect picker sets independent custom image
+ok 35 - preview item picker propagates inherited art, effect picker sets independent custom image
+  ---
+  duration_ms: 5.760712
+  type: 'test'
+  ...
+# Subtest: preview cancel and stale picker callbacks cause no document writes
+ok 36 - preview cancel and stale picker callbacks cause no document writes
+  ---
+  duration_ms: 0.862097
+  type: 'test'
+  ...
+# Subtest: icon-only repairs existing legacy effects and changes individual effect without replacing rules
+ok 37 - icon-only repairs existing legacy effects and changes individual effect without replacing rules
+  ---
+  duration_ms: 1.964619
+  type: 'test'
+  ...
+# Subtest: Foundry validation may install non-configurable legacy icon accessors on its input
+ok 38 - Foundry validation may install non-configurable legacy icon accessors on its input
+  ---
+  duration_ms: 1.099019
+  type: 'test'
+  ...
+# Subtest: missing and generic icons inherit item image, with mechanics intact
+ok 39 - missing and generic icons inherit item image, with mechanics intact
+  ---
+  duration_ms: 2.912514
+  type: 'test'
+  ...
+# Subtest: native status and explicit non-generic artwork retain original
+ok 40 - native status and explicit non-generic artwork retain original
+  ---
+  duration_ms: 0.461715
+  type: 'test'
+  ...
+# Subtest: compendium original flag protects even generic SVG
+ok 41 - compendium original flag protects even generic SVG
+  ---
+  duration_ms: 0.259382
+  type: 'test'
+  ...
+# Subtest: custom and original override inheritance, reset restores per-effect default
+ok 42 - custom and original override inheritance, reset restores per-effect default
+  ---
+  duration_ms: 0.629232
+  type: 'test'
+  ...
+# Subtest: cancel leaves item data unchanged, invalid paths and rows rejected
+ok 43 - cancel leaves item data unchanged, invalid paths and rows rejected
+  ---
+  duration_ms: 0.451371
+  type: 'test'
+  ...
+# Subtest: icon-only uses actual existing effects, repairs legacy and propagates inherited
+ok 44 - icon-only uses actual existing effects, repairs legacy and propagates inherited
+  ---
+  duration_ms: 1.482798
+  type: 'test'
+  ...
+# Subtest: icon-only can change a single effect with no parent selection
+ok 45 - icon-only can change a single effect with no parent selection
+  ---
+  duration_ms: 0.517409
+  type: 'test'
+  ...
+# Subtest: icon-only repairs old generic icons even without a new parent image
+ok 46 - icon-only repairs old generic icons even without a new parent image
+  ---
+  duration_ms: 0.217346
+  type: 'test'
+  ...
+# Subtest: existing manual edit supersedes inherited marker and remains unchanged
+ok 47 - existing manual edit supersedes inherited marker and remains unchanged
+  ---
+  duration_ms: 0.687781
+  type: 'test'
+  ...
+# Subtest: full update preserves old custom art by exact ID or unique name
+ok 48 - full update preserves old custom art by exact ID or unique name
+  ---
+  duration_ms: 0.855322
+  type: 'test'
+  ...
+# Subtest: full update explicit override can replace an old custom image
+ok 49 - full update explicit override can replace an old custom image
+  ---
+  duration_ms: 0.219009
+  type: 'test'
+  ...
+# Subtest: full update does not reuse a prior icon for a second effect when ID already matched
+ok 50 - full update does not reuse a prior icon for a second effect when ID already matched
+  ---
+  duration_ms: 0.142853
+  type: 'test'
+  ...
+# Subtest: skipped existing items get no effect changes
+ok 51 - skipped existing items get no effect changes
+  ---
+  duration_ms: 0.076143
+  type: 'test'
+  ...
+# Subtest: legacy icon normalized to native img without touching mechanics
+ok 52 - legacy icon normalized to native img without touching mechanics
+  ---
+  duration_ms: 0.29848
+  type: 'test'
+  ...
+# Subtest: declared original policy can retain intentional generic artwork
+ok 53 - declared original policy can retain intentional generic artwork
+  ---
+  duration_ms: 0.075574
+  type: 'test'
+  ...
+# Subtest: ring fixture retains timer-free mechanics and inherits two icons
+ok 54 - ring fixture retains timer-free mechanics and inherits two icons
+  ---
+  duration_ms: 1.390883
+  type: 'test'
+  ...
+# Subtest: updateExisting icon-only writes embedded icon patch, not system or full effect
+ok 55 - updateExisting icon-only writes embedded icon patch, not system or full effect
+  ---
+  duration_ms: 0.655777
+  type: 'test'
+  ...
+# Subtest: updateExisting rejects stale effect ID before any writes
+ok 56 - updateExisting rejects stale effect ID before any writes
+  ---
+  duration_ms: 0.523101
+  type: 'test'
+  ...
+# Subtest: commit never mutates protected legacy icon properties or frozen effect data
+ok 57 - commit never mutates protected legacy icon properties or frozen effect data
+  ---
+  duration_ms: 0.185095
+  type: 'test'
+  ...
+# Subtest: legacy JSON has no links
+ok 58 - legacy JSON has no links
+  ---
+  duration_ms: 2.851385
+  type: 'test'
+  ...
+# Subtest: Golden Ledger has four links and retains metadata
+ok 59 - Golden Ledger has four links and retains metadata
+  ---
+  duration_ms: 1.77543
+  type: 'test'
+  ...
+# Subtest: links and verifies array advancements; repeat safe
+ok 60 - links and verifies array advancements; repeat safe
+  ---
+  duration_ms: 1.42207
+  type: 'test'
+  ...
+# Subtest: links and verifies object advancements; repeat safe
+ok 61 - links and verifies object advancements; repeat safe
+  ---
+  duration_ms: 1.517391
+  type: 'test'
+  ...
+# Subtest: rejects missing ref
+ok 62 - rejects missing ref
+  ---
+  duration_ms: 2.669015
+  type: 'test'
+  ...
+# Subtest: rejects duplicate ref
+ok 63 - rejects duplicate ref
+  ---
+  duration_ms: 0.203175
+  type: 'test'
+  ...
+# Subtest: rejects self ref
+ok 64 - rejects self ref
+  ---
+  duration_ms: 0.32
+  type: 'test'
+  ...
+# Subtest: rejects bad advancement
+ok 65 - rejects bad advancement
+  ---
+  duration_ms: 0.176646
+  type: 'test'
+  ...
+# Subtest: missing created document prevents updates
+ok 66 - missing created document prevents updates
+  ---
+  duration_ms: 0.798761
+  type: 'test'
+  ...
+# Subtest: conflicting existing grant is not overwritten
+ok 67 - conflicting existing grant is not overwritten
+  ---
+  duration_ms: 0.744836
+  type: 'test'
+  ...
+# Subtest: icon-only mode never writes already linked existing parent
+ok 68 - icon-only mode never writes already linked existing parent
+  ---
+  duration_ms: 0.497401
+  type: 'test'
+  ...
+# Subtest: icon-only mode refuses to modify an existing empty grant
+ok 69 - icon-only mode refuses to modify an existing empty grant
+  ---
+  duration_ms: 0.524133
+  type: 'test'
+  ...
+# Subtest: world import uses four different selected icons
+ok 70 - world import uses four different selected icons
+  ---
+  duration_ms: 5.503404
+  type: 'test'
+  ...
+# Subtest: actor import supports independent choices and reset
+ok 71 - actor import supports independent choices and reset
+  ---
+  duration_ms: 1.528772
+  type: 'test'
+  ...
+# Subtest: cancelling preview prevents any item creation
+ok 72 - cancelling preview prevents any item creation
+  ---
+  duration_ms: 1.112642
+  type: 'test'
+  ...
+# Subtest: existing items remain skipped, not overwritten by chosen image
+ok 73 - existing items remain skipped, not overwritten by chosen image
+  ---
+  duration_ms: 1.135815
+  type: 'test'
+  ...
+# Subtest: icon-only mode updates matched document and leaves new items importable
+ok 74 - icon-only mode updates matched document and leaves new items importable
+  ---
+  duration_ms: 1.227892
+  type: 'test'
+  ...
+# Subtest: icon-only mode without selection keeps current icon
+ok 75 - icon-only mode without selection keeps current icon
+  ---
+  duration_ms: 0.93416
+  type: 'test'
+  ...
+# Subtest: custom world folder is used for creations and duplicate checks
+ok 76 - custom world folder is used for creations and duplicate checks
+  ---
+  duration_ms: 7.919775
+  type: 'test'
+  ...
+# Subtest: dialog reads all preferred packs and saves settings only after confirmation
+ok 77 - dialog reads all preferred packs and saves settings only after confirmation
+  ---
+  duration_ms: 1.387316
+  type: 'test'
+  ...
+# Subtest: icon update stays in explicitly selected folder and preserves same-named item elsewhere
+ok 78 - icon update stays in explicitly selected folder and preserves same-named item elsewhere
+  ---
+  duration_ms: 1.356891
+  type: 'test'
+  ...
+# Subtest: four independent rows retain distinct image paths, including Forge URLs
+ok 79 - four independent rows retain distinct image paths, including Forge URLs
+  ---
+  duration_ms: 2.196355
+  type: 'test'
+  ...
+# Subtest: unchanged icons and original JSON image are preserved
+ok 80 - unchanged icons and original JSON image are preserved
+  ---
+  duration_ms: 1.034766
+  type: 'test'
+  ...
+# Subtest: reset restores original icon, not another item icon
+ok 81 - reset restores original icon, not another item icon
+  ---
+  duration_ms: 0.366441
+  type: 'test'
+  ...
+# Subtest: cancellation leaves parsed item data untouched
+ok 82 - cancellation leaves parsed item data untouched
+  ---
+  duration_ms: 1.553908
+  type: 'test'
+  ...
+# Subtest: invalid rows and empty or nonstring paths cannot be selected
+ok 83 - invalid rows and empty or nonstring paths cannot be selected
+  ---
+  duration_ms: 0.282271
+  type: 'test'
+  ...
+# Subtest: commit modifies only img and retains all activities, effects and flags
+ok 84 - commit modifies only img and retains all activities, effects and flags
+  ---
+  duration_ms: 0.493392
+  type: 'test'
+  ...
+# Subtest: all 100 supported import rows can select independent icons
+ok 85 - all 100 supported import rows can select independent icons
+  ---
+  duration_ms: 0.335556
+  type: 'test'
+  ...
+# Subtest: old selection and multiple saved selections render as checked boxes
+ok 86 - old selection and multiple saved selections render as checked boxes
+  ---
+  duration_ms: 0.774629
+  type: 'test'
+  ...
+# Subtest: pack names and values are escaped
+ok 87 - pack names and values are escaped
+  ---
+  duration_ms: 0.218832
+  type: 'test'
+  ...
+# Subtest: filter preserves hidden selections and allows independent additional selection
+ok 88 - filter preserves hidden selections and allows independent additional selection
+  ---
+  duration_ms: 1.0104
+  type: 'test'
+  ...
+# Subtest: clear removes all selections even if filtered out
+ok 89 - clear removes all selections even if filtered out
+  ---
+  duration_ms: 0.231189
+  type: 'test'
+  ...
+# Subtest: search Enter does not submit form
+ok 90 - search Enter does not submit form
+  ---
+  duration_ms: 0.149679
+  type: 'test'
+  ...
+# Subtest: copy compendium effect, preserve mechanics and flags, use feature image, link to activity and journal
+ok 91 - copy compendium effect, preserve mechanics and flags, use feature image, link to activity and journal
+  ---
+  duration_ms: 4.266241
+  type: 'test'
+  ...
+# Subtest: custom effect artwork wins over feature image
+ok 92 - custom effect artwork wins over feature image
+  ---
+  duration_ms: 1.899899
+  type: 'test'
+  ...
+# Subtest: explicit journal placeholder requires source; no plain text fallback
+ok 93 - explicit journal placeholder requires source; no plain text fallback
+  ---
+  duration_ms: 0.634309
+  type: 'test'
+  ...
+# Subtest: reject missing
+ok 94 - reject missing
+  ---
+  duration_ms: 0.637707
+  type: 'test'
+  ...
+# Subtest: reject ambiguous
+ok 95 - reject ambiguous
+  ---
+  duration_ms: 0.293608
+  type: 'test'
+  ...
+# Subtest: reject unconfigured
+ok 96 - reject unconfigured
+  ---
+  duration_ms: 0.330782
+  type: 'test'
+  ...
+# Subtest: reject wrong type
+ok 97 - reject wrong type
+  ---
+  duration_ms: 0.270893
+  type: 'test'
+  ...
+# Subtest: reject no embedded effect
+ok 98 - reject no embedded effect
+  ---
+  duration_ms: 0.183697
+  type: 'test'
+  ...
+# Subtest: reject multiple embedded effects
+ok 99 - reject multiple embedded effects
+  ---
+  duration_ms: 0.516103
+  type: 'test'
+  ...
+# Subtest: explicit effect name and onSave flag
+ok 100 - explicit effect name and onSave flag
+  ---
+  duration_ms: 0.714321
+  type: 'test'
+  ...
+# Subtest: missing activity fails
+ok 101 - missing activity fails
+  ---
+  duration_ms: 0.337544
+  type: 'test'
+  ...
+# Subtest: external item grant resolves actual compendium UUID
+ok 102 - external item grant resolves actual compendium UUID
+  ---
+  duration_ms: 0.666274
+  type: 'test'
+  ...
+# Subtest: legacy items untouched
+ok 103 - legacy items untouched
+  ---
+  duration_ms: 0.14625
+  type: 'test'
+  ...
+# Subtest: dropdown offers journal packs and individual world journal entries, not items
+ok 104 - dropdown offers journal packs and individual world journal entries, not items
+  ---
+  duration_ms: 6.75447
+  type: 'test'
+  ...
+# Subtest: world journal page resolves to its UUID
+ok 105 - world journal page resolves to its UUID
+  ---
+  duration_ms: 0.446276
+  type: 'test'
+  ...
+# Subtest: world journal entry resolves to its UUID
+ok 106 - world journal entry resolves to its UUID
+  ---
+  duration_ms: 0.105867
+  type: 'test'
+  ...
+# Subtest: journal compendium page is resolvable
+ok 107 - journal compendium page is resolvable
+  ---
+  duration_ms: 1.620028
+  type: 'test'
+  ...
+# Subtest: duplicate matching journal names rejected, including pages
+ok 108 - duplicate matching journal names rejected, including pages
+  ---
+  duration_ms: 0.356155
+  type: 'test'
+  ...
+# Subtest: description only journal link does not copy active effect
+ok 109 - description only journal link does not copy active effect
+  ---
+  duration_ms: 0.254303
+  type: 'test'
+  ...
+# Subtest: effect only still works without journal selection
+ok 110 - effect only still works without journal selection
+  ---
+  duration_ms: 0.271197
+  type: 'test'
+  ...
+# Subtest: missing selected world journal rejected
+ok 111 - missing selected world journal rejected
+  ---
+  duration_ms: 0.268701
+  type: 'test'
+  ...
+# Subtest: exact entry takes precedence over its own identically named page
+ok 112 - exact entry takes precedence over its own identically named page
+  ---
+  duration_ms: 0.097434
+  type: 'test'
+  ...
+# Subtest: journal pack read once for repeated condition links in one import
+ok 113 - journal pack read once for repeated condition links in one import
+  ---
+  duration_ms: 0.260301
+  type: 'test'
+  ...
+# Coast Forge | Error: Missing: not found in available Item compendiums.
+#     at file:///tmp/cf21/scripts/references.mjs:72:34
+#     at async generateScrolls (file:///tmp/cf21/scripts/scrolls.mjs:157:15)
+#     at async openImporter (file:///tmp/cf21/scripts/main.mjs:357:25)
+#     at async TestContext.<anonymous> (file:///tmp/cf21/tests/scroll-import-workflow.test.mjs:21:112)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+# Subtest: scroll-only JSON flows through actual importer preview and creation
+ok 114 - scroll-only JSON flows through actual importer preview and creation
+  ---
+  duration_ms: 7.276083
+  type: 'test'
+  ...
+# Subtest: cancelled scroll preview never creates items
+ok 115 - cancelled scroll preview never creates items
+  ---
+  duration_ms: 0.727729
+  type: 'test'
+  ...
+# Subtest: missing spell never creates items or invokes native converter
+ok 116 - missing spell never creates items or invokes native converter
+  ---
+  duration_ms: 1.169247
+  type: 'test'
+  ...
+# Subtest: official scaling selected in dialog reaches linked activity
+ok 117 - official scaling selected in dialog reaches linked activity
+  ---
+  duration_ms: 1.326178
+  type: 'test'
+  ...
+# Subtest: scroll-only and mixed imports parse without changing schema version
+ok 118 - scroll-only and mixed imports parse without changing schema version
+  ---
+  duration_ms: 2.220772
+  type: 'test'
+  ...
+# Subtest: levels default to base, all expands 1–9, cantrips stay at 0
+ok 119 - levels default to base, all expands 1–9, cantrips stay at 0
+  ---
+  duration_ms: 1.087872
+  type: 'test'
+  ...
+# Subtest: reject invalid, duplicate, below-base and cantrip upcast levels
+ok 120 - reject invalid, duplicate, below-base and cantrip upcast levels
+  ---
+  duration_ms: 0.549331
+  type: 'test'
+  ...
+# Subtest: fixed challenge table uses scroll level not original spell level
+ok 121 - fixed challenge table uses scroll level not original spell level
+  ---
+  duration_ms: 0.787721
+  type: 'test'
+  ...
+# Subtest: generates nine independent native requests with fixed levels and no dialogs
+ok 122 - generates nine independent native requests with fixed levels and no dialogs
+  ---
+  duration_ms: 7.576137
+  type: 'test'
+  ...
+# Subtest: copies source data without mutation, strips timers and macro hooks
+ok 123 - copies source data without mutation, strips timers and macro hooks
+  ---
+  duration_ms: 0.697091
+  type: 'test'
+  ...
+# Subtest: fixed save DC, preserves effect links, substitutes item.level in formulas
+ok 124 - fixed save DC, preserves effect links, substitutes item.level in formulas
+  ---
+  duration_ms: 0.528671
+  type: 'test'
+  ...
+# Subtest: multi-pack search and ambiguity handling use same resolver
+ok 125 - multi-pack search and ambiguity handling use same resolver
+  ---
+  duration_ms: 2.400534
+  type: 'test'
+  ...
+# Subtest: missing source and expansion limit stop before conversion
+ok 126 - missing source and expansion limit stop before conversion
+  ---
+  duration_ms: 0.640818
+  type: 'test'
+  ...
+# Subtest: duplicate variant names stop before conversion
+ok 127 - duplicate variant names stop before conversion
+  ---
+  duration_ms: 0.46895
+  type: 'test'
+  ...
+# Subtest: explicit followups have no item consumption; spent scroll retained
+ok 128 - explicit followups have no item consumption; spent scroll retained
+  ---
+  duration_ms: 0.671706
+  type: 'test'
+  ...
+# Subtest: price override and image are explicit; source prices otherwise retained
+ok 129 - price override and image are explicit; source prices otherwise retained
+  ---
+  duration_ms: 0.492186
+  type: 'test'
+  ...
+# Subtest: invalid native output aborts rather than inventing a scroll
+ok 130 - invalid native output aborts rather than inventing a scroll
+  ---
+  duration_ms: 0.316404
+  type: 'test'
+  ...
+# Subtest: all scroll levels lead with the correct English ordinal, including cantrip
+ok 131 - all scroll levels lead with the correct English ordinal, including cantrip
+  ---
+  duration_ms: 0.186201
+  type: 'test'
+  ...
+# Subtest: generated names and description headings use level-first naming
+ok 132 - generated names and description headings use level-first naming
+  ---
+  duration_ms: 2.229598
+  type: 'test'
+  ...
+# Subtest: default Cast scrolls link source UUID, use caster values and consume a single scroll, not a slot
+ok 133 - default Cast scrolls link source UUID, use caster values and consume a single scroll, not a slot
+  ---
+  duration_ms: 7.585287
+  type: 'test'
+  ...
+# Subtest: official Cast mode sets only fixed challenge values for actual scroll level
+ok 134 - official Cast mode sets only fixed challenge values for actual scroll level
+  ---
+  duration_ms: 0.541155
+  type: 'test'
+  ...
+# Subtest: per-request mode overrides dialog default; bad modes rejected
+ok 135 - per-request mode overrides dialog default; bad modes rejected
+  ---
+  duration_ms: 0.463232
+  type: 'test'
+  ...
+# Subtest: Cast cantrip remains level zero; fixed name and level-specific price override retained
+ok 136 - Cast cantrip remains level zero; fixed name and level-specific price override retained
+  ---
+  duration_ms: 0.388383
+  type: 'test'
+  ...
+# Subtest: Cast source duration override is manual, concentration preserved; original source effects untouched
+ok 137 - Cast source duration override is manual, concentration preserved; original source effects untouched
+  ---
+  duration_ms: 0.398368
+  type: 'test'
+  ...
+# Subtest: legacy follow-up requests explicitly retain old behavior; Cast cannot silently pretend to support followups
+ok 138 - legacy follow-up requests explicitly retain old behavior; Cast cannot silently pretend to support followups
+  ---
+  duration_ms: 0.364343
+  type: 'test'
+  ...
+# Subtest: source activities with disabled slot consumption are explicitly warned about
+ok 139 - source activities with disabled slot consumption are explicitly warned about
+  ---
+  duration_ms: 0.753459
+  type: 'test'
+  ...
+# Subtest: all source activities skipping linked consumption are blocked, not imported as free scrolls
+ok 140 - all source activities skipping linked consumption are blocked, not imported as free scrolls
+  ---
+  duration_ms: 0.255136
+  type: 'test'
+  ...
+# Subtest: native race and species alias accepted, other unknown types still rejected
+ok 141 - native race and species alias accepted, other unknown types still rejected
+  ---
+  duration_ms: 2.029914
+  type: 'test'
+  ...
+# Subtest: Veyraki fixture builds one species and six correctly classified feats
+ok 142 - Veyraki fixture builds one species and six correctly classified feats
+  ---
+  duration_ms: 1.865544
+  type: 'test'
+  ...
+# Subtest: native level zero size and skill choice retained, no invented ability scores
+ok 143 - native level zero size and skill choice retained, no invented ability scores
+  ---
+  duration_ms: 1.344019
+  type: 'test'
+  ...
+# Subtest: six local Species grants linked with array advancement data
+ok 144 - six local Species grants linked with array advancement data
+  ---
+  duration_ms: 3.222125
+  type: 'test'
+  ...
+# Subtest: six local Species grants linked with object advancement data
+ok 145 - six local Species grants linked with object advancement data
+  ---
+  duration_ms: 1.35548
+  type: 'test'
+  ...
+# Subtest: two independent long rest resources; self temp HP and ten-minute utility
+ok 146 - two independent long rest resources; self temp HP and ten-minute utility
+  ---
+  duration_ms: 0.838324
+  type: 'test'
+  ...
+# Subtest: external native race lookup supported
+ok 147 - external native race lookup supported
+  ---
+  duration_ms: 0.83283
+  type: 'test'
+  ...
+# Subtest: skip never writes
+ok 148 - skip never writes
+  ---
+  duration_ms: 2.777649
+  type: 'test'
+  ...
+# Subtest: icons-only changes only selected icon
+ok 149 - icons-only changes only selected icon
+  ---
+  duration_ms: 0.276326
+  type: 'test'
+  ...
+# Subtest: icons-only without selection never writes
+ok 150 - icons-only without selection never writes
+  ---
+  duration_ms: 0.176389
+  type: 'test'
+  ...
+# Subtest: full update replaces system and effects, preserves UUID, folder, flags and original image
+ok 151 - full update replaces system and effects, preserves UUID, folder, flags and original image
+  ---
+  duration_ms: 0.855719
+  type: 'test'
+  ...
+# Subtest: full update can apply new selected image and remove obsolete effects
+ok 152 - full update can apply new selected image and remove obsolete effects
+  ---
+  duration_ms: 0.216479
+  type: 'test'
+  ...
+# Subtest: same effect ID updates embedded doc
+ok 153 - same effect ID updates embedded doc
+  ---
+  duration_ms: 0.366784
+  type: 'test'
+  ...
+# Subtest: actor full update blocked before writes
+ok 154 - actor full update blocked before writes
+  ---
+  duration_ms: 0.412862
+  type: 'test'
+  ...
+# Subtest: invalid embedded IDs rejected before writes
+ok 155 - invalid embedded IDs rejected before writes
+  ---
+  duration_ms: 0.207403
+  type: 'test'
+  ...
+# Subtest: match only same name and type
+ok 156 - match only same name and type
+  ---
+  duration_ms: 0.441946
+  type: 'test'
+  ...
+# Subtest: generated scrolls match their legacy name without matching other levels or ordinary items
+ok 157 - generated scrolls match their legacy name without matching other levels or ordinary items
+  ---
+  duration_ms: 0.395615
+  type: 'test'
+  ...
+# Subtest: full update switches a copied scroll to Cast and preserves its document and chosen icon
+ok 158 - full update switches a copied scroll to Cast and preserves its document and chosen icon
+  ---
+  duration_ms: 0.507368
+  type: 'test'
+  ...
+# Subtest: old pack setting migrates and multiple selections deduplicate
+ok 159 - old pack setting migrates and multiple selections deduplicate
+  ---
+  duration_ms: 2.230653
+  type: 'test'
+  ...
+# Subtest: two preferred packs can supply different spells and straight/curly apostrophe
+ok 160 - two preferred packs can supply different spells and straight/curly apostrophe
+  ---
+  duration_ms: 0.868205
+  type: 'test'
+  ...
+# Subtest: automatic fallback when selected pack misses a spell
+ok 161 - automatic fallback when selected pack misses a spell
+  ---
+  duration_ms: 0.320582
+  type: 'test'
+  ...
+# Subtest: automatic search without selection filters spell vs feat
+ok 162 - automatic search without selection filters spell vs feat
+  ---
+  duration_ms: 1.677069
+  type: 'test'
+  ...
+# Subtest: preferred matching pack wins over unselected duplicate
+ok 163 - preferred matching pack wins over unselected duplicate
+  ---
+  duration_ms: 0.187266
+  type: 'test'
+  ...
+# Subtest: ambiguous selected and automatic matches fail with pack IDs
+ok 164 - ambiguous selected and automatic matches fail with pack IDs
+  ---
+  duration_ms: 0.886748
+  type: 'test'
+  ...
+# Subtest: explicit pack is strict, no fallback
+ok 165 - explicit pack is strict, no fallback
+  ---
+  duration_ms: 0.333574
+  type: 'test'
+  ...
+# Subtest: missing, invalid pack and invalid item type fail
+ok 166 - missing, invalid pack and invalid item type fail
+  ---
+  duration_ms: 0.342161
+  type: 'test'
+  ...
+# Subtest: pack index read once across references
+ok 167 - pack index read once across references
+  ---
+  duration_ms: 0.488703
+  type: 'test'
+  ...
+# Subtest: description link uses exact same UUID as explicitly pinned grant even when preferred source differs
+ok 168 - description link uses exact same UUID as explicitly pinned grant even when preferred source differs
+  ---
+  duration_ms: 1.728019
+  type: 'test'
+  ...
+# Subtest: plain mentions and native links unchanged; description-only item references supported
+ok 169 - plain mentions and native links unchanged; description-only item references supported
+  ---
+  duration_ms: 0.723282
+  type: 'test'
+  ...
+# Subtest: unresolved explicit description link blocks import
+ok 170 - unresolved explicit description link blocks import
+  ---
+  duration_ms: 0.214828
+  type: 'test'
+  ...
+# Subtest: item folder choices include nested path but not actor folders
+ok 171 - item folder choices include nested path but not actor folders
+  ---
+  duration_ms: 8.207139
+  type: 'test'
+  ...
+# Subtest: selected folder resolves exactly, invalid/deleted folder is rejected
+ok 172 - selected folder resolves exactly, invalid/deleted folder is rejected
+  ---
+  duration_ms: 0.319143
+  type: 'test'
+  ...
+# Subtest: complete Creator subclass resolves mixed spell and feature grants, preserves levels and descriptions
+ok 173 - complete Creator subclass resolves mixed spell and feature grants, preserves levels and descriptions
+  ---
+  duration_ms: 5.234427
+  type: 'test'
+  ...
+1..173
+# tests 173
+# suites 0
+# pass 173
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 476.006633

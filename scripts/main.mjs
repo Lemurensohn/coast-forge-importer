@@ -1,3 +1,4 @@
+import {registerSummonManager, openSummonManager} from "./summon-manager.mjs";
 import { findActorFolder, DEFAULT_ACTOR_FOLDER, planActors, actorPreview, resolveSummonRefs, verifyExistingSummons, createPlannedActors } from "./actors.mjs";
 import { generateScrolls, MAX_SCROLLS } from "./scrolls.mjs";
 import { PACK_SETTINGS, resolveReferences, referenceSources, hasDescriptionReferences } from "./references.mjs";
@@ -439,9 +440,11 @@ Hooks.on("renderApplicationV2", (app, html) => {
 Hooks.on("renderSidebar", addButtonFromSidebar);
 Hooks.once("ready", () => {
   if (game.system?.id !== "dnd5e") return;
+  registerSummonManager();
   const module = game.modules.get(MODULE_ID);
   if (module) module.api = Object.freeze({
     open: openImporter,
+    manageSummons: openSummonManager,
     parse: parseImport,
     build: (spec) => buildItemData(spec, () => foundry.utils.randomID())
   });
