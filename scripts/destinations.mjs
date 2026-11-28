@@ -2,8 +2,8 @@
 export const DEFAULT_FOLDER = 'Coast Forge Imports';
 export const isWorldDestination = value => value === 'world' || (typeof value === 'string' && value.startsWith('folder:'));
 const contents = x => x?.contents ?? (Array.isArray(x) ? x : [...(x?.values?.() ?? [])]);
-export function folderChoices(folders) {
-  const entries = contents(folders).filter(f => f.type === 'Item');
+export function folderChoices(folders, type = 'Item') {
+  const entries = contents(folders).filter(f => f.type === type);
   const byId = new Map(entries.map(f => [f.id, f]));
   return entries.map(f => {
     const names = [f.name]; const seen = new Set([f.id]); let parent = f.folder;

@@ -178,3 +178,47 @@ Source references (5.2.5): https://github.com/foundryvtt/dnd5e/blob/release-5.2.
 ## v0.1.14 — Species
 
 Use `kind: "species"` or `type: "race"` for native Species items. Use `system.type.value: "race"` for child feat items, and native `system.movement`, creature type, level-0 Size/Trait/ItemGrant advancements on the Species. Local `grantLinks` resolve after all World Items are created. Import into a World Item folder, then drag the Species onto a character. See `examples/65-veyraki-species.json`. Live advancement flow is not covered by Node tests.
+
+## v0.2.0 — Native NPC Actor imports and summon links
+
+The existing `schemaVersion: 1` is unchanged. Add an optional `actors` array (up to 50). Each entry requires a unique `ref` (lowercase letters/numbers/hyphens, 1–100 chars), `name`, and `type: "npc"`. Optional `description` (plain text biography), `img`, `system` (native D&D5e NPC data), `prototypeToken` (native token data), `effects` (normal effect shorthand), `flags`, and `items` (up to 100 embedded ordinary item specs per NPC) are accepted. Embedded item descriptions support the established compendium aliases. Embedded Grant Items and external effect/grant imports are not yet supported; use native data or standalone world Items instead. Do not supply document IDs or ownership. Actor names and refs must be unique within the batch.
+
+```json
+{
+  "schemaVersion": 1,
+  "actors": [{
+    "ref": "example-construct",
+    "name": "Example Construct",
+    "type": "npc",
+    "system": {
+      "details": {"type": {"value": "construct"}},
+      "attributes": {"ac": {"calc": "flat", "flat": 15}, "hp": {"value": 20, "max": 20}, "movement": {"walk": 30, "units": "ft"}},
+      "traits": {"size": "med"}
+    },
+    "prototypeToken": {"actorLink": false},
+    "items": []
+  }],
+  "items": [{
+    "name": "Call Construct", "kind": "feature",
+    "activities": [{
+      "type": "summon", "name": "Summon Construct",
+      "activation": {"type": "bonus", "value": 1, "override": true},
+      "consumption": {"spellSlot": false, "targets": []},
+      "profiles": [{"name": "Construct", "actorRef": "example-construct", "count": "1"}],
+      "creatureSizes": ["sm", "med"], "summon": {"prompt": true}
+    }]
+  }]
+}
+```
+
+`actorRef` is import-only metadata, never stored in Foundry. It resolves against an Actor spec in the same file. Native `uuid` can instead refer to an existing Actor; its access and existence are the author's responsibility. Never set both. More than one native `summon` activity or profile per item is supported. Preserve native `match`, `bonuses`, `visibility`, `creatureSizes` and `count` properties. The native system selects one profile per use; a count greater than one summons copies of that profile, not a mixed group. The module does not add its own runtime summoning hooks yet.
+
+Import via the existing Item directory button. Select the World Item destination and a separate Actor destination (default root folder `Coast Forge Actors`). Actor-only import does not create an Item folder. Preview NPCs and their embedded items first, then World Items. All approvals are required before document creation. Choose portraits and each embedded item icon as usual; if token texture is not explicitly provided in JSON, it inherits the final portrait. Separate token images may be set with `prototypeToken.texture.src` or edited afterwards in Foundry. Unlinked tokens are default. Actor IDs are reserved in memory before preflight, then requested with `keepId:true` and verified upon creation. Actors are created before dependent Items. Native document constructors validate detached copies in the real application. Node tests use mocks only.
+
+Matching NPCs (name, ref, and type, within selected folder) are reused unchanged regardless of the Item update mode. Conflicting name/ref and ambiguous matches are errors. No Actor full update, no Actor icon-only update yet. To change an Actor, edit it manually or create a separate template in a test folder and update dependent world Items. Existing linked Items with mismatched summon profiles must be updated, not skipped. No automatic rollback; back up before importing; a failed write may leave earlier NPCs/Items in the world. Permissions remain under GM control. Native 5.2.5 summoning checks token creation permission, allowSummoning, and ownership of the source Actor. Assign only intended players ownership or test as GM. Do not grant all players Owner globally.
+
+### Live test: examples/71-tactician-summons-TEST.json
+
+Three unlinked Construct NPC templates, 15 embedded features, four native summon activities (three individual and one profile chooser). Use a test Artist of level 3–5 whose class identifier is `artist`, preferably level 3, INT 16, PB 2 and AC 15. Baseline NPC HP 40, AC 15. Native bonuses attempt to reproduce `Artist AC` and `10 + 7 × Artist level + 3 × INT modifier` at summoning, relative to template base values. Check native matching of attacks, save DC and proficiency. The sample attack damage and Guardian temp HP intentionally use INT +3/PB +2; other ability scores and CR are fixture placeholders, not invented campaign rules. All other rules stay in descriptions; manually apply damage type, specialized shared uses, commands, conditions, protection, dismissal, initiative, and movement. Limit one unit at this tier. No automatic duration timer. Mixed summons, higher-tier scaling and auras are not yet implemented. Test one summon, then dismiss; confirm one use consumed and no spell slot; change AC/INT and repeat; verify HP/AC, profile selection, Small/Medium, and independent unlinked HP. Try a player account after setting permissions. Test duplicate reimport and cancellation. Do not use this fixture as the complete subclass.
+
+Native source: https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/data/activity/summon-data.mjs and https://github.com/foundryvtt/dnd5e/blob/release-5.2.5/module/documents/activity/summon.mjs .

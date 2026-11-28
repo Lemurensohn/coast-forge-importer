@@ -53,12 +53,31 @@ export function parseImport(text) {
   const scrolls = input.scrolls === undefined ? [] : input.scrolls;
   if (!Array.isArray(scrolls) || scrolls.length > 500) throw new Error("'scrolls' muss eine Liste mit maximal 500 Einträgen sein.");
   const items = input.items === undefined ? [] : input.items;
-  if (!Array.isArray(items) || (!items.length && !scrolls.length)) {
-    throw new Error("'items' oder 'scrolls' muss eine nichtleere Liste sein.");
+  if (!Array.isArray(items) || (!items.length && !scrolls.length && !input.actors?.length)) {
+    throw new Error("'items', 'actors' oder 'scrolls' muss eine nichtleere Liste sein.");
   }
   input.items = items;
   if (input.items.length > 100) throw new Error("Maximal 100 Items pro Import.");
   const warnings = [];
+  if (input.actors !== undefined) {
+    if (!Array.isArray(input.actors) || input.actors.length > 50) throw new Error("'actors' muss eine Liste mit maximal 50 NPCs sein.");
+    const refs = new Set(), names = new Set();
+    for (const actor of input.actors) {
+      if (!isObject(actor) || actor.type !== 'npc' || typeof actor.name !== 'string' || !actor.name.trim() || actor.name.length > 200) throw new Error('Actor: name and type npc required.');
+      if (typeof actor.ref !== 'string' || !/^[a-z0-9][a-z0-9-]{0,99}$/.test(actor.ref) || refs.has(actor.ref) || names.has(actor.name.trim())) throw new Error(`Actor: invalid or duplicate ref/name: ${actor.ref}`);
+      refs.add(actor.ref); names.add(actor.name.trim());
+      for (const key of ['system','flags','prototypeToken']) if (actor[key] !== undefined && !isObject(actor[key])) throw new Error(`${actor.name}: ${key} must be an object.`);
+      for (const key of ['description','img']) if (actor[key] !== undefined && typeof actor[key] !== 'string') throw new Error(`${actor.name}: ${key} must be text.`);
+      if (actor.ownership !== undefined || actor._id !== undefined) throw new Error(`${actor.name}: ownership and document IDs are managed in Foundry.`);
+      if (actor.items !== undefined && (!Array.isArray(actor.items) || actor.items.length > 100)) throw new Error(`${actor.name}: invalid embedded items.`);
+      if (actor.effects !== undefined && (!Array.isArray(actor.effects) || actor.effects.length > 30 || actor.effects.some(e=>!isObject(e)||!Array.isArray(e.changes)))) throw new Error(`${actor.name}: invalid effects.`);
+      if (actor.items?.length) {
+        const embedded = parseImport(JSON.stringify({schemaVersion:1,items:actor.items}));
+        if (embedded.items.some(i=>i.grantLinks!==undefined||i.compendiumGrants!==undefined||i.effectRefs!==undefined)) throw new Error(`${actor.name}: embedded Grant Links and compendium effect/grant imports are not supported yet.`);
+        warnings.push(...embedded.warnings.map(w=>`${actor.name}: ${w}`));
+      }
+    }
+  }
   const signatures = new Set();
   input.items.forEach((item, index) => {
     const p = `Item ${index + 1}`;
@@ -110,7 +129,7 @@ export function parseImport(text) {
       warnings.push(`${item.name}: Klassen-/Subclass-Advancement wird noch nicht automatisch aufgebaut.`);
     }
   });
-  return { schemaVersion: SCHEMA_VERSION, items: input.items, warnings, ...(input.scrolls !== undefined ? {scrolls} : {}) };
+  return { schemaVersion: SCHEMA_VERSION, items: input.items, warnings, ...(input.scrolls !== undefined ? {scrolls} : {}), ...(input.actors !== undefined ? {actors:input.actors} : {}) };
 }
 /** Converts an approachable damage shorthand to the v5.2.5 DamageField structure. */
 export function normalizeDamagePart(part) {

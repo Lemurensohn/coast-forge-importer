@@ -1,3 +1,4 @@
+import { findActorFolder, DEFAULT_ACTOR_FOLDER, planActors, actorPreview, resolveSummonRefs, verifyExistingSummons, createPlannedActors } from "./actors.mjs";
 import { generateScrolls, MAX_SCROLLS } from "./scrolls.mjs";
 import { PACK_SETTINGS, resolveReferences, referenceSources, hasDescriptionReferences } from "./references.mjs";
 import { MODES, matchingItems, updateExisting } from "./updates.mjs";
@@ -68,13 +69,14 @@ async function askSource() {
     .filter(a => a.isOwner)
     .sort((a, b) => a.name.localeCompare(b.name));
   const folders = folderChoices(game.folders).map(f=>`<option value="${escapeHtml(f.value)}">${escapeHtml(f.label)}</option>`).join('');
+  const actorFolders = folderChoices(game.folders,"Actor").map(f=>`<option value="${escapeHtml(f.value)}">${escapeHtml(f.label)}</option>`).join('');
   const options = actors.map(a => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join("");
   return DialogV2.prompt({
     window: { title: "Coast Forge – Homebrew importieren", resizable: true },
     position: { width: Math.min(820, Math.max(300, globalThis.innerWidth - 32)) },
     content: `
       <div class="coast-forge-dialog">
-        <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code> bzw. <code>scrolls</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
+        <p><strong>Format:</strong> JSON mit <code>schemaVersion: 1</code> und <code>items</code>, <code>actors</code> bzw. <code>scrolls</code>. Eine .txt-Datei darf denselben JSON-Inhalt enthalten.</p>
         <div class="form-group"><label for="coast-forge-file">Datei (.json oder .txt)</label>
           <input id="coast-forge-file" type="file" name="sourceFile" accept=".json,.txt,application/json,text/plain"></div>
         <p class="hint">Alternativ Importtext direkt einfügen:</p>
@@ -85,6 +87,8 @@ async function askSource() {
             <optgroup label="Welt-Item-Ordner">${folders}</optgroup>
             <optgroup label="Actors">${options}</optgroup>
           </select></div>
+        <div class="form-group"><label>Actor-Zielordner (nur neue NPCs)</label><select name="actorDestination"><option value="world">Coast Forge Actors</option>${actorFolders}</select></div>
+        <p class="hint">Vorhandene NPCs mit passender lokaler Referenz werden wiederverwendet, nicht überschrieben. Spielerrechte werden in Foundry vergeben.</p>
         <div class="form-group"><label>Existing Items</label><select name="mode"><option value="skip">Skip Existing (Standard)</option><option value="icons">Update Icons Only</option><option value="update">Update Existing Items (nur Welt-Items)</option></select></div>
         <div class="form-group"><label>Spellscroll Scaling (nur Scrolls)</label><select name="scrollScaling"><option value="character">Character Scaling – Werte des Anwenders (Standard)</option><option value="official">Official Scroll Scaling – feste Scroll-Werte</option></select></div>
         <p class="hint">Vollupdate ersetzt Regeln, Activities, Effects und Advancements; UUID bleibt erhalten. Keine automatische Aktualisierung von Actor-Kopien.</p>
@@ -106,7 +110,7 @@ async function askSource() {
         const packSelections = Object.fromEntries(Object.keys(PACK_SETTINGS).map(key=>[key,form.elements.namedItem(key)?.value ?? ""]));
         packSelections.itemPack = JSON.stringify(selectedPacks(form));
         const scrollScaling = form.elements.namedItem("scrollScaling")?.value ?? "character";
-        return { text, destination, mode, packSelections, scrollScaling };
+        return { text, destination, mode, packSelections, scrollScaling, actorDestination:form.elements.namedItem("actorDestination")?.value ?? "world" };
       }
     },
     rejectClose: false
@@ -129,7 +133,7 @@ function preflight(items) {
 }
 
 // v0.1.9: native FilePicker for item and optional effect artwork.
-async function confirmPreview(preview, warnings, destination, mode = "skip") {
+async function confirmPreview(preview, warnings, destination, mode = "skip", actorTargetName = null) {
   for (const row of preview) if (row.data && row.existing?.img) row.data.img = row.existing.img;
   const icons = createIconChoices(preview);
   const effectIcons = createEffectIconChoices(preview, icons, mode);
@@ -167,7 +171,7 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
   const warningList = warnings.length
     ? `<details><summary>${warnings.length} Hinweis(e)</summary><ul>${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join("")}</ul></details>`
     : "<p>Keine Formatwarnungen.</p>";
-  const targetName = isWorldDestination(destination) ? (destination === 'world' ? `${DEFAULT_FOLDER} (Welt)` : folderChoices(game.folders).find(f=>f.value===destination)?.label ?? 'Unbekannt') : game.actors.get(destination)?.name ?? 'Unbekannt';
+  const targetName = actorTargetName ?? (isWorldDestination(destination) ? (destination === 'world' ? `${DEFAULT_FOLDER} (Welt)` : folderChoices(game.folders).find(f=>f.value===destination)?.label ?? 'Unbekannt') : game.actors.get(destination)?.name ?? 'Unbekannt');
   const count = preview.filter(r => !r.error).length;
   let approved;
   try {
@@ -176,7 +180,7 @@ async function confirmPreview(preview, warnings, destination, mode = "skip") {
       position: { width: Math.min(900, Math.max(300, (globalThis.innerWidth ?? 932) - 32)) },
       modal: false,
       content: `<div class="coast-forge-preview">
-        <p><strong>${count} von ${preview.length} Items vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
+        <p><strong>${count} von ${preview.length} ${actorTargetName ? "Actor-/Feature-Einträgen" : "Items"} vorgeprüft.</strong> Ziel: ${escapeHtml(targetName)}</p>
         ${mode === "update" ? `<p class="coast-forge-error"><strong>Vollupdate:</strong> Bestehende Regeln, Activities, Effects und Advancements werden ersetzt. Vorher Welt sichern; kein automatischer Rollback.</p>` : ""}
         <p class="hint">Optional: Wähle für jedes Item ein eigenes Bild aus der Foundry-Dateiauswahl. Ohne Auswahl bleibt das Item-Icon erhalten. Normale Effects übernehmen es automatisch; unter Active Effects kannst du einzelne Icons abweichend einstellen.</p>
         <table><thead><tr><th>Icon</th><th>Name</th><th>Typ</th><th>Activities</th><th>Effekte</th><th>Prüfung</th></tr></thead><tbody>${rows}</tbody></table>
@@ -280,17 +284,17 @@ async function resolveTarget(destination) {
   if (!folder) folder = await Folder.create({ name: DEFAULT_FOLDER, type: "Item" });
   return { actor: null, folder };
 }
-async function performImport(preview, destination, plans = [], mode = "skip") {
+async function performImport(preview, destination, plans = [], mode = "skip", actorResult = null) {
   const documents = new Map();
   let linked = 0;
-  const { actor, folder } = await resolveTarget(destination);
+  const { actor, folder } = preview.length ? await resolveTarget(destination) : {actor:null,folder:null};
   const successes = [], skipped = [], failures = [], updated = [];
   for (const { item, data, error, iconChanged, existing, effectIconPatches } of preview) {
     if (error) { failures.push(`${item.name}: ${error}`); continue; }
     try {
       const collection = actor ? actor.items.contents : game.items.contents.filter(i => i.folder?.id === folder.id);
       const matches = matchingItems(collection,data);
-      if (mode !== "skip" && (matches.length > 1 || (existing?.id ?? null) !== (matches[0]?.id ?? null))) throw new Error("Target changed after preview or ambiguous match. Restart import.");
+      if ((mode !== "skip" || actorResult) && (matches.length > 1 || (existing?.id ?? null) !== (matches[0]?.id ?? null))) throw new Error("Target changed after preview or ambiguous match. Restart import.");
       if (matches.length) {
         if (plans.length && item.ref) {
           if (matches.length !== 1 || matches[0].flags?.[MODULE_ID]?.localRef !== item.ref) throw new Error("Existing item does not match local reference; rename or remove it before importing.");
@@ -298,12 +302,14 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
         }
         if (mode !== "skip" && await updateExisting(matches[0],data,mode,iconChanged,d=>new CONFIG.Item.documentClass(JSON.parse(JSON.stringify(d))).toObject(),effectIconPatches)) updated.push(item.name);
         else skipped.push(item.name);
+        if(actorResult) verifyExistingSummons(matches[0],data);
         continue;
       }
       if (actor) {
         await actor.createEmbeddedDocuments("Item", [data]);
       } else {
         const created = await Item.implementation.createDocuments([{ ...data, folder: folder.id }]);
+        if(actorResult) { if(!created?.[0]) throw new Error("World Item creation did not return a document."); verifyExistingSummons(created[0],data); }
         if (plans.length && item.ref) documents.set(item.ref, created?.[0]);
       }
       successes.push(item.name);
@@ -316,7 +322,7 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
     try { linked = await linkGrants(plans, documents, {readOnlyParents: new Set(mode === "icons" ? preview.filter(r=>r.existing).map(r=>r.item.ref) : [])}); }
     catch (err) { failures.push(`Grant Items: ${err.message}`); }
   } else if (plans.length) failures.push("Grant linking skipped because an item failed.");
-  const resultText = `${successes.length} importiert, ${updated.length} aktualisiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.${plans.length ? ` ${linked} Grant-Links bestätigt.` : ""}`;
+  const resultText = `${actorResult ? `${actorResult.created.length} NPCs erstellt, ${actorResult.reused.length} wiederverwendet. ` : ""}${successes.length} importiert, ${updated.length} aktualisiert, ${skipped.length} übersprungen, ${failures.length} fehlgeschlagen.${plans.length ? ` ${linked} Grant-Links bestätigt.` : ""}`;
   const failuresHtml = failures.length ? `<details open><summary>Fehler</summary><ul>${failures.map(f => `<li>${escapeHtml(f)}</li>`).join("")}</ul></details>` : "";
   const skippedHtml = skipped.length ? `<details><summary>Übersprungen</summary><ul>${skipped.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul></details>` : "";
   await DialogV2.prompt({
@@ -326,14 +332,14 @@ async function performImport(preview, destination, plans = [], mode = "skip") {
   });
   if (failures.length) ui.notifications.warn(`${TAG}: ${resultText}`);
   else ui.notifications.info(`${TAG}: ${resultText}`);
-  return { successes, skipped, failures, linked, updated };
+  return { successes, skipped, failures, linked, updated, ...(actorResult ? {actors:actorResult} : {}) };
 }
 export async function openImporter() {
   if (!game.user?.isGM) { ui.notifications.warn("Coast Forge: Nur Spielleitungen dürfen importieren."); return; }
   if (game.system?.id !== "dnd5e") { ui.notifications.error("Coast Forge: Benötigt das dnd5e-System."); return; }
   const major = Number(String(game.system.version).split(".")[0]);
   if (major !== 5) {
-    ui.notifications.warn(`Coast Forge v0.1 wurde für D&D5e 5.x entwickelt. Installiert ist ${game.system.version}; bitte in einer Testwelt prüfen.`);
+    ui.notifications.warn(`Coast Forge v0.2 wurde für D&D5e 5.x entwickelt. Installiert ist ${game.system.version}; bitte in einer Testwelt prüfen.`);
   }
   try {
     const entry = await askSource();
@@ -359,6 +365,18 @@ export async function openImporter() {
       resolved.items.push(...generated.items);
       resolved.warnings.push(...generated.warnings);
     }
+    const actorDestination = entry.actorDestination ?? "world";
+    const actorFolder = parsed.actors?.length ? findActorFolder(actorDestination,game.folders) : null;
+    const actorPlans = planActors(parsed.actors??[],game.actors,actorFolder,()=>foundry.utils.randomID());
+    if(actorPlans.length && !isWorldDestination(entry.destination)) throw new Error("Actor batches require a World Item destination; add the resulting features to characters afterwards.");
+    resolved.items = resolveSummonRefs(resolved.items,actorPlans);
+    // Embedded description aliases are resolved using the same selected packs as world items.
+    for (const plan of actorPlans) if (plan.spec.items?.some(hasDescriptionReferences)) {
+      const embedded = await resolveReferences(plan.spec.items,entry.packSelections??{},game.packs,()=>foundry.utils.randomID(),game.journal);
+      plan.spec={...plan.spec,items:embedded.items};
+      resolved.warnings.push(...embedded.warnings);
+    }
+    const actorRows = actorPreview(actorPlans,()=>foundry.utils.randomID(),data=>new CONFIG.Actor.documentClass(data));
     const plans = planGrants(resolved.items);
     if (plans.length && !isWorldDestination(entry.destination)) throw new Error("Linked advancement imports require World Items.");
     const preview = preflight(resolved.items);
@@ -369,10 +387,11 @@ export async function openImporter() {
     for (const row of preview) if (row.data) {
       const matches = matchingItems(collection,row.data);
       const signature = JSON.stringify([row.data.name,row.data.type]);
-      if (mode!=="skip" && (matches.length>1 || seen.has(signature))) throw new Error(`${row.data.name}: ambiguous update target.`);
+      if ((mode!=="skip" || actorPlans.length) && (matches.length>1 || seen.has(signature))) throw new Error(`${row.data.name}: ambiguous update target.`);
       seen.add(signature);
       if (matches.length===1) {
         row.existing=matches[0];
+        if(mode!=="update" && actorPlans.length) verifyExistingSummons(row.existing,row.data);
         if (row.existing.name!==row.data.name) parsed.warnings.push(`${row.data.name}: existing legacy-named scroll found (${row.existing.name}). It will not be renamed automatically; rename it manually or use the optional rename macro.`);
       }
       if (plans.length && row.item.ref && matches.length && (matches.length!==1 || matches[0].flags?.[MODULE_ID]?.localRef!==row.item.ref)) throw new Error(`${row.data.name}: existing item does not match local reference.`);
@@ -385,16 +404,25 @@ export async function openImporter() {
     if (mode==='skip' && preview.some(p=>p.existing)) parsed.warnings.unshift('Existing items are skipped: selected new icons will not be applied.');
     if (plans.length && preview.some(p => p.error)) throw new Error("Linked import blocked: " + preview.filter(p=>p.error).map(p=>`${p.item.name}: ${p.error}`).join("; "));
     if (plans.length) parsed.warnings.unshift(`${plans.reduce((n,p)=>n+p.refs.length,0)} Grant-Item-Verknüpfungen werden nach dem Import erstellt.`);
-    const approved = await confirmPreview(preview, parsed.warnings, entry.destination, mode);
-    if (!approved) return;
-    if (!preview.some(p => !p.error)) {
+    if(actorRows.length && preview.some(p=>p.error)) throw new Error("Actor batch blocked: invalid world Item in preview.");
+    if(actorRows.length){
+      const actorIconRows=actorRows.flatMap(row=>[row,...(row.existing?[]:row.data.items.map((data,i)=>({item:row.item.items[i],data,error:null})))]);
+      const actorWarnings=[...parsed.warnings, "Actor templates: existing NPCs are reused without changes. New NPC token artwork inherits portrait unless an explicit prototypeToken.texture.src is supplied. Embedded item icons can be selected here. No timers added. Player ownership and summon permissions must be assigned in Foundry."];
+      if(!await confirmPreview(actorIconRows,actorWarnings,entry.destination,"skip",actorFolder?.name??DEFAULT_ACTOR_FOLDER)) return;
+    }
+    if(preview.length && !await confirmPreview(preview, parsed.warnings, entry.destination, mode)) return;
+    if (!actorRows.length && !preview.some(p => !p.error)) {
       ui.notifications.error("Coast Forge: Kein gültiges Item zum Importieren.");
       return;
     }
     if (entry.packSelections) for (const key of Object.keys(PACK_SETTINGS)) {
       if (game.settings.get(MODULE_ID,key)!==entry.packSelections[key]) await game.settings.set(MODULE_ID,key,entry.packSelections[key]);
     }
-    return await performImport(preview, entry.destination, plans, mode);
+    const actorResult=actorRows.length ? await createPlannedActors(actorRows,{
+      getActors:()=>game.actors,getFolders:()=>game.folders,destination:actorDestination,
+      createFolder:data=>Folder.create(data),createActor:data=>CONFIG.Actor.documentClass.create(data,{keepId:true})
+    }) : null;
+    return await performImport(preview, entry.destination, plans, mode, actorResult);
   } catch (error) { notifyError(error); }
 }
 Hooks.once("init",()=>{
